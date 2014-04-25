@@ -11,7 +11,7 @@ The easiest way to add a high conversion Stripe Checkout form to your site and s
 
 == Description ==
 
-Add the highly optimized Stripe Checkout form to your site in a few simple steps.
+Add a highly optimized Stripe Checkout form overlay to your site in a few simple steps.
 
 Instead of spending time building your own checkout forms you can use Stripe's, which is continually tested for high conversion.
 
@@ -143,6 +143,21 @@ See the official [Stripe checkout documentation](https://stripe.com/docs/checkou
 3. Admin settings page
 
 == Changelog ==
+
+= 1.1.0 =
+
+* Added image_url shortcode attribute.
+* Added currency shortcode attribute.
+* Added checkout_button_label shortcode attribute.
+* Added payment_button_label shortcode attribute (thanks @enollo).
+* Added billing shortcode attribute.
+* Added shipping shortcode attribute.
+* Added enable_remember shortcode attribute.
+* Added success_redirect_url shortcode attribute.
+* Updated to most recent Stripe library.
+* Added a couple of action and filter hooks.
+* Fixed bug where other instances of Stripe class were causing errors.
+* Removed a default string being added to customer description in Stripe dashboard.
 
 = 1.0.1 =
 
