@@ -19,14 +19,107 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since 1.0.0
  */
 function sc_register_settings() {
+	
+	global $sc_options;
+	
+	$sc_options = array();
+	
 	$sc_settings = array(
 
-		/* General Settings */
-		'general' => array(
-			'enable_test_key' => array(
-				'id'   => 'enable_test_key',
-				'name' => __( 'Enable Test Mode', 'sc' ),
-				'desc' => __( 'Place Stripe in Test mode using your test API keys.', 'sc' ),
+		/* Default Settings */
+		'default' => array(
+			'note' => array(
+				'id'   => 'settings_note',
+				'name' => '',
+				'desc' => '<a href="' . sc_ga_campaign_url( SC_WEBSITE_BASE_URL . 'docs/shortcodes/stripe-checkout/', 'stripe_checkout', 'settings', 'docs' ) . '" target="_blank">' .
+				          __( 'See shortcode options and examples', 'sc' ) . '</a> ' . __( 'for', 'sc' ) . ' ' . Stripe_Checkout::get_plugin_title() .
+				          '<p class="description">' . __( 'Shortcode attributes take precedence and will always be used over default settings.', 'sc' ) . '</p>',
+				'type' => 'section'
+			),
+			'name' => array(
+				'id'   => 'name',
+				'name' => __( 'Site Name', 'sc' ),
+				'desc' => __( 'The name of your store or website. Defaults to Site Name.' , 'sc' ),
+				'type' => 'text',
+				'size' => 'regular-text'
+			),
+			'currency' => array(
+				'id'   => 'currency',
+				'name' => __( 'Currency Code', 'sc' ),
+				'desc' => __( 'Specify a currency using it\'s ', 'sc' ) .
+							sprintf( '<a href="%s" target="_blank">%s</a>', 'https://support.stripe.com/questions/which-currencies-does-stripe-support', __('3-letter ISO Code', 'sc' ) ) . '. ' .
+							__( 'Defaults to USD.', 'sc' ),
+				'type' => 'text',
+				'size' => 'regular-text'
+			),
+			'image_url' => array(
+				'id'   => 'image_url',
+				'name' => __( 'Image URL', 'sc' ),
+				'desc' => __( 'A URL pointing to a square image of your brand or product. The recommended minimum size is 128x128px.' , 'sc' ),
+				'type' => 'text',
+				'size' => 'regular-text'
+			),
+			'checkout_button_label' => array(
+				'id'   => 'checkout_button_label',
+				'name' => __( 'Checkout Button Label', 'sc' ),
+				'desc' => __( 'The label of the payment button in the checkout form. You can use {{amount}} to display the amount.' , 'sc' ),
+				'type' => 'text',
+				'size' => 'regular-text'
+			),
+			'payment_button_label' => array(
+				'id'   => 'payment_button_label',
+				'name' => __( 'Payment Button Label', 'sc' ),
+				'desc' => __( 'Text to display on the default blue button that users click to initiate a checkout process.' , 'sc' ),
+				'type' => 'text',
+				'size' => 'regular-text'
+			),
+			'success_redirect_url' => array(
+				'id'   => 'success_redirect_url',
+				'name' => __( 'Success Redirect URL', 'sc' ),
+				'desc' => __( 'The URL that the user should be redirected to after a successful payment.' , 'sc' ),
+				'type' => 'text',
+				'size' => 'regular-text'
+			),
+			'stripe_total_label' => array(
+				'id'   => 'stripe_total_label',
+				'name' => __( 'Stripe Total Label', 'sc' ),
+				'desc' => __( 'The default label for the stripe_total shortcode.' , 'sc' ),
+				'type' => 'text',
+				'size' => 'regular-text'
+			),
+			'billing' => array(
+				'id'   => 'billing',
+				'name' => __( 'Enable Billing Address', 'sc' ),
+				'desc' => __( 'Require the user to enter their billing address during checkout.', 'sc' ),
+				'type' => 'checkbox'
+			),
+			'shipping' => array(
+				'id'   => 'shipping',
+				'name' => __( 'Enable Shipping Address', 'sc' ),
+				'desc' => __( 'Require the user to enter their shipping address during checkout.', 'sc' ),
+				'type' => 'checkbox'
+			),
+			'enable_remember' => array(
+				'id'   => 'enable_remember',
+				'name' => __( 'Enable "Remember Me"', 'sc' ),
+				'desc' => __( 'Adds a "Remember Me" option to the checkout form to allow the user to store their credit card for future use with other sites using Stripe. ', 'sc' ) .
+					sprintf( '<a href="%s" target="_blank">%s</a>', 'https://stripe.com/checkout/info', __('See how it works', 'sc' ) ) . '.',
+				'type' => 'checkbox'
+			),
+			'disable_css' => array(
+				'id'   => 'disable_css',
+				'name' => __( 'Disable Form CSS', 'sc' ),
+				'desc' => __( 'Disable the plugin from ouputting the default form CSS. Also disables for all add-ons.', 'sc' ),
+				'type' => 'checkbox'
+			)
+		),
+		
+		/* Keys settings */
+		'keys' => array(
+			'enable_live_key' => array(
+				'id'   => 'enable_live_key',
+				'name' => __( 'Test or Live Mode', 'sc' ),
+				'desc' => '<p class="description">' . __( 'Toggle between using your Test or Live API keys.', 'sc' ) . '</p>',
 				'type' => 'checkbox'
 			),
 			'test_secret_key' => array(
@@ -57,38 +150,47 @@ function sc_register_settings() {
 				'type' => 'text',
 				'size' => 'regular-text'
 			)
-		),
+		)
 	);
-
-	/* If the options do not exist then create them for each section */
-	if ( false == get_option( 'sc_settings_general' ) ) {
-		add_option( 'sc_settings_general' );
-	}
-
-	/* Add the General Settings section */
-	add_settings_section(
-		'sc_settings_general',
-		__( 'Keys', 'sc' ),
-		'__return_false',
-		'sc_settings_general'
-	);
-
-	foreach ( $sc_settings['general'] as $option ) {
-		add_settings_field(
-			'sc_settings_general[' . $option['id'] . ']',
-			$option['name'],
-			function_exists( 'sc_' . $option['type'] . '_callback' ) ? 'sc_' . $option['type'] . '_callback' : 'sc_missing_callback',
-			'sc_settings_general',
-			'sc_settings_general',
-			sc_get_settings_field_args( $option, 'general' )
+	
+	$sc_settings = apply_filters( 'sc_settings', $sc_settings );
+	
+	$sc_settings_title = '';
+	
+	foreach( $sc_settings as $setting => $option ) {
+		
+		if( false == get_option( 'sc_settings_' . $setting ) ) {
+			add_option( 'sc_settings_' . $setting );
+		}
+		
+		add_settings_section(
+			'sc_settings_' . $setting,
+			apply_filters( 'sc_settings_' . $setting . '_title', $sc_settings_title ),
+			'__return_false',
+			'sc_settings_' . $setting
 		);
+		
+		foreach ( $sc_settings[$setting] as $option ) {
+			add_settings_field(
+				'sc_settings_' . $setting . '[' . $option['id'] . ']',
+				$option['name'],
+				function_exists( 'sc_' . $option['type'] . '_callback' ) ? 'sc_' . $option['type'] . '_callback' : 'sc_missing_callback',
+				'sc_settings_' . $setting,
+				'sc_settings_' . $setting,
+				sc_get_settings_field_args( $option, $setting )
+			);
+		}
+		
+		register_setting( 'sc_settings_' . $setting, 'sc_settings_' . $setting, 'sc_settings_sanitize' );
+		
+		$sc_options = array_merge( $sc_options, is_array( get_option( 'sc_settings_' . $setting ) ) ? get_option( 'sc_settings_' . $setting ) : array() );
 	}
-
-	/* Register all settings or we will get an error when trying to save */
-	register_setting( 'sc_settings_general',         'sc_settings_general',         'sc_settings_sanitize' );
-
+	
+	update_option( 'sc_settings_master', $sc_options );
+	
 }
 add_action( 'admin_init', 'sc_register_settings' );
+
 
 /*
  * Return generic add_settings_field $args parameter array.
@@ -107,7 +209,8 @@ function sc_get_settings_field_args( $option, $section ) {
 		'section' => $section,
 		'size'    => isset( $option['size'] ) ? $option['size'] : null,
 		'options' => isset( $option['options'] ) ? $option['options'] : '',
-		'std'     => isset( $option['std'] ) ? $option['std'] : ''
+		'std'     => isset( $option['std'] ) ? $option['std'] : '',
+		'product' => isset( $option['product'] ) ? $option['product'] : ''
 	);
 
 	// Link label to input using 'label_for' argument if text, textarea, password, select, or variations of.
@@ -154,14 +257,103 @@ function sc_text_callback( $args ) {
  */
 function sc_checkbox_callback( $args ) {
 	global $sc_options;
+	
 
-	$checked = isset( $sc_options[$args['id']] ) ? checked( 1, $sc_options[$args['id']], false ) : '';
+	$checked = ( isset( $sc_options[$args['id']] ) ? checked( 1, $sc_options[$args['id']], false ) : '' );
+
 	$html = "\n" . '<input type="checkbox" id="sc_settings_' . $args['section'] . '[' . $args['id'] . ']" name="sc_settings_' . $args['section'] . '[' . $args['id'] . ']" value="1" ' . $checked . '/>' . "\n";
 
 	// Render description text directly to the right in a label if it exists.
 	if ( ! empty( $args['desc'] ) )
 		$html .= '<label for="sc_settings_' . $args['section'] . '[' . $args['id'] . ']"> '  . $args['desc'] . '</label>' . "\n";
 
+	echo $html;
+}
+
+
+/*
+ * Section callback function
+ * 
+ * @since 1.0.0
+ * 
+ */
+function sc_section_callback( $args ) {
+	$html = '';
+	
+	if ( ! empty( $args['desc'] ) ) {
+		$html .= $args['desc'];
+	}
+
+	echo $html;
+}
+
+/*
+ * License Keys callback function
+ * 
+ * @since 1.1.1
+ */
+function sc_license_callback( $args ) {
+	global $sc_options;
+
+	if ( isset( $sc_options[ $args['id'] ] ) ) {
+		$value = $sc_options[ $args['id'] ];
+	} else {
+		$value = isset( $args['std'] ) ? $args['std'] : '';
+	}
+	
+	$item = '';
+	
+	$html  = '<div class="license-wrap">';
+	
+	$size  = ( isset( $args['size'] ) && ! is_null( $args['size'] ) ) ? $args['size'] : 'regular-text';
+	$html .= "\n" . '<input type="text" class="' . $size . '" id="sc_settings_' . $args['section'] . '[' . $args['id'] . ']" name="sc_settings_' . $args['section'] . '[' . $args['id'] . ']" value="' . trim( esc_attr( $value ) ) . '"/>' . "\n";
+	
+	
+	$licenses = get_option( 'sc_licenses' );
+	
+	
+	// Add button on side of input
+	if( ! empty( $licenses[ $args['product'] ] ) && $licenses[ $args['product'] ] == 'valid' && ! empty( $value ) ) {
+		$html .= '<button class="button" data-sc-action="deactivate_license" data-sc-item="' .
+		         ( ! empty( $args['product'] ) ? $args['product'] : 'none' ) . '">' . __( 'Deactivate', 'sc' ) . '</button>';
+	} else {
+		$html .= '<button class="button" data-sc-action="activate_license" data-sc-item="' .
+		         ( ! empty( $args['product'] ) ? $args['product'] : 'none' ) . '">' . __( 'Activate', 'sc' ) . '</button>';
+	}
+	
+	$license_class = '';
+	$valid_message = '';
+	
+	$valid = sc_check_license( $value, $args['product'] );
+
+	if( $valid == 'valid' ) {
+		$license_class = 'sc-valid';
+		$valid_message = __( 'License is valid and active.', 'sc' );
+	} else if( $valid == 'notfound' ) {
+		$license_class = 'sc-invalid';
+		$valid_message = __( 'License service could not be found. Please contact support for assistance.', 'sc' );
+	} else {
+		$license_class = 'sc-inactive';
+		$valid_message = __( 'License is inactive.', 'sc' );
+	}
+	
+	$html .= '<span class="sc-spinner-wrap"><span class="spinner sc-spinner"></span></span>';
+	$html .= '<span class="sc-license-message ' . $license_class . '">' . $valid_message . '</span>';
+	
+	/*$button = '';
+	$button = apply_filters( 'sc_license_button', $button );*/
+	
+	//$html .= $button;
+	
+	// Render and style description text underneath if it exists.
+	if ( ! empty( $args['desc'] ) ) {
+		$html .= '<p class="description">' . $args['desc'] . '</p>' . "\n";
+	}
+	
+	$html .= '</div>';
+	
+	//$html = '<pre>' . print_r( $sc_licenses, true ) . '</pre>';
+	
 	echo $html;
 }
 
@@ -172,8 +364,31 @@ function sc_checkbox_callback( $args ) {
  * 
  */
 function sc_settings_sanitize( $input ) {
-	//add_settings_error( 'sc-notices', '', '', '' );
 	return $input;
+}
+
+/**
+ * Radio button callback function
+ *
+ * @since 1.1.1
+ */
+function sc_radio_callback( $args ) {
+	global $sc_options;
+
+	foreach ( $args['options'] as $key => $option ) {
+		$checked = false;
+	
+
+		if ( isset( $sc_options[ $args['id'] ] ) && $sc_options[ $args['id'] ] == $key )
+			$checked = true;
+		elseif( isset( $args['std'] ) && $args['std'] == $key && ! isset( $sc_options[ $args['id'] ] ) )
+			$checked = true;
+
+		echo '<input name="sc_settings_' . $args['section'] . '[' . $args['id'] . ']" id="sc_settings_' . $args['section'] . '[' . $args['id'] . '][' . $key . ']" type="radio" value="' . $key . '" ' . checked(true, $checked, false) . '/>&nbsp;';
+		echo '<label for="sc_settings_' . $args['section'] . '[' . $args['id'] . '][' . $key . ']">' . $option . '</label><br/>';
+	}
+
+	echo '<p class="description">' . $args['desc'] . '</p>';
 }
 
 /*
@@ -187,14 +402,33 @@ function sc_missing_callback( $args ) {
 }
 
 /*
- * Function used to return an array of all of the plugin settings
+ * Set the default settings when first installed
  * 
  * @since 1.0.0
  * 
  */
+function sc_set_defaults() {
+	if( ! get_option( 'sc_has_run' ) ) {
+		$defaults = get_option( 'sc_settings_default' );
+		$defaults['enable_remember'] = 1;
+		update_option( 'sc_settings_default', $defaults );
+		
+		add_option( 'sc_has_run', 1 );
+	}
+}
+
+/*
+ * Update the global settings
+ * 
+ * @since 1.1.1
+ */
 function sc_get_settings() {
-
-	$general_settings = is_array( get_option( 'sc_settings_general' ) ) ? get_option( 'sc_settings_general' )  : array();
-
-	return $general_settings;
+	
+	$sc_options = get_option( 'sc_settings_master' );
+	
+	if( isset( $sc_options['currency'] ) ) {
+		$sc_options['currency'] = strtoupper( $sc_options['currency'] );
+	}
+	
+	return $sc_options;
 }

@@ -8,6 +8,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+// TODO 
+// Update this file with more robust examples from the 1.1.1 code?
+// Keep in mind we also have a list of hooks in an excel sheet, so maybe we just wait until a help website is up for it?
+
 /**
  * Changes the HTML output of the payment details
  * 
@@ -71,3 +75,15 @@ function test_sc_redirect_after() {
 }
 //add_action( 'sc_redirect_after', 'test_sc_redirect_after' );
 
+
+/**
+ * Change prefilled email
+ * 
+ * @since 1.1.1
+ */
+function test_sc_modify_script_options( $options ) {
+	$options['script']['email'] = 'test@test.com';
+	
+	return $options;
+}
+//add_filter( 'sc_modify_script_options', 'test_sc_modify_script_options' );
