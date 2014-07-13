@@ -20,7 +20,7 @@ function sc_charge_card() {
 	if( isset( $_POST['stripeToken'] ) ) {
 		
 		if( ! class_exists( 'Stripe' ) ) {
-			require_once( SC_PLUGIN_DIR . 'stripe-php/Stripe.php' );
+			require_once( SC_PLUGIN_DIR . 'libraries/stripe-php/Stripe.php' );
 		}
 		
 		global $sc_options;
@@ -85,13 +85,13 @@ function sc_charge_card() {
 		if( ! $failed ) {
 
 			// Update our payment details option so we can show it at the top of the content
-			$sc_payment_details['show']        = 1;
+			$sc_payment_details['show']        = true;
 			$sc_payment_details['amount']      = $amount;
 			$sc_payment_details['name']        = $name;
 			$sc_payment_details['description'] = $description;
 			$sc_payment_details['currency']    = $currency;
 
-			update_option( 'sc_payment_details', apply_filters( 'sc_payment_details', $sc_payment_details ) );
+			Stripe_Checkout::get_instance()->session->set( 'sc_payment_details', $sc_payment_details );		
 		}
 		
 		do_action( 'sc_redirect_before' );
@@ -116,7 +116,8 @@ if( isset( $_POST['stripeToken'] ) ) {
  */
 function sc_show_payment_details( $content ) {
 	
-	$sc_payment_details = get_option( 'sc_payment_details' );
+	$sc_payment_details = Stripe_Checkout::get_instance()->session->get( 'sc_payment_details' );
+	
 	$payment_details_html = '';
 	
 	if( ! empty( $sc_payment_details ) ) {
@@ -147,7 +148,9 @@ function sc_show_payment_details( $content ) {
 			
 			$content = $before_payment_details_html . $payment_details_html . $after_payment_details_html . $content;
 			
-			delete_option( 'sc_payment_details' );
+			$sc_payment_details['show'] = false;
+			
+			Stripe_Checkout::get_instance()->session->set( 'sc_payment_details', $sc_payment_details );
 		}
 	}
 	
