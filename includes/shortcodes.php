@@ -34,7 +34,9 @@ function sc_stripe_shortcode( $attr, $content = null ) {
 					'payment_button_label'  => ( ! empty( $sc_options['payment_button_label'] ) ? $sc_options['payment_button_label'] : __( 'Pay with Card', 'sc' ) ),
 					'enable_remember'       => '',    // true or false
 					'success_redirect_url'  => ( ! empty( $sc_options['success_redirect_url'] ) ? $sc_options['success_redirect_url'] : get_permalink() ),
-					'prefill_email'         => 'false'
+					'failure_redirect_url'  => ( ! empty( $sc_options['failure_redirect_url'] ) ? $sc_options['failure_redirect_url'] : get_permalink() ),
+					'prefill_email'         => 'false',
+					'verify_zip'            => ( ! empty( $sc_options['verify_zip'] ) ? 'true' : 'false' )
 				), $attr, 'stripe' ) );
 	
 	
@@ -80,10 +82,12 @@ function sc_stripe_shortcode( $attr, $content = null ) {
 			'shipping-address'     => $shipping,
 			'label'                => $payment_button_label,
 			'allow-remember-me'    => $enable_remember,
-			'email'                => $prefill_email
+			'email'                => $prefill_email,
+			'verify_zip'           => $verify_zip
 		),
 		'other' => array(
-			'success-redirect-url' => $success_redirect_url
+			'success-redirect-url' => $success_redirect_url,
+			'failure-redirect-url' => $failure_redirect_url
 		)
 	);
 	
@@ -101,7 +105,8 @@ function sc_stripe_shortcode( $attr, $content = null ) {
 			'billingAddress'  => ( ! empty( $sc_script_options['script']['billing-address'] ) ? $sc_script_options['script']['billing-address'] : ( ! empty( $sc_options['billing'] ) ? $sc_options['billing'] : -1 ) ),
 			'shippingAddress' => ( ! empty( $sc_script_options['script']['shipping-address'] ) ? $sc_script_options['script']['shipping-address'] : ( ! empty( $sc_options['shipping'] ) ? $sc_options['shipping'] : -1 ) ),
 			'allowRememberMe' => ( ! empty( $sc_script_options['script']['allow-remember-me'] ) ? $sc_script_options['script']['allow-remember-me'] : ( ! empty( $sc_options['enable_remember'] ) ? $sc_options['enable_remember'] : -1 ) ),
-			'email'           => ( ! empty( $sc_script_options['script']['email'] ) && ! ( $sc_script_options['script']['email'] === 'false' ) ? $sc_script_options['script']['email'] : -1 )
+			'email'           => ( ! empty( $sc_script_options['script']['email'] ) && ! ( $sc_script_options['script']['email'] === 'false' ) ? $sc_script_options['script']['email'] : -1 ),
+			'zipCode'         => ( ! empty( $sc_script_options['script']['verify_zip'] ) && ! ( $sc_script_options['script']['verify_zip'] === 'false' ) ? $sc_script_options['script']['verify_zip'] : -1 )
 	);
 
 	// Reference for Stripe's zero-decimal currencies in JS.
@@ -111,6 +116,7 @@ function sc_stripe_shortcode( $attr, $content = null ) {
 	$description          = $sc_script_options['script']['description'];
 	$amount               = $sc_script_options['script']['amount'];
 	$success_redirect_url = $sc_script_options['other']['success-redirect-url'];
+	$failure_redirect_url = $sc_script_options['other']['failure-redirect-url'];
 	$currency             = $sc_script_options['script']['currency'];
 
 	//Add Parsley JS form validation attribute here.
@@ -125,6 +131,7 @@ function sc_stripe_shortcode( $attr, $content = null ) {
 	$html .= '<input type="hidden" name="sc-description" value="' . esc_attr( $description ) . '" />';
 	$html .= '<input type="hidden" name="sc-amount" class="sc_amount" value="" />';
 	$html .= '<input type="hidden" name="sc-redirect" value="' . esc_attr( ( ! empty( $success_redirect_url ) ? $success_redirect_url : get_permalink() ) ) . '" />';
+	$html .= '<input type="hidden" name="sc-redirect-fail" value="' . esc_attr( ( ! empty( $failure_redirect_url ) ? $failure_redirect_url : get_permalink() ) ) . '" />';
 	$html .= '<input type="hidden" name="sc-currency" value="' .esc_attr( $currency ) . '" />';
 	$html .= '<input type="hidden" name="stripeToken" value="" class="sc_stripeToken" />';
 	$html .= '<input type="hidden" name="stripeEmail" value="" class="sc_stripeEmail" />';

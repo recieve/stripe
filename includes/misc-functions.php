@@ -26,7 +26,8 @@ function sc_charge_card() {
 		global $sc_options;
 		
 		// Set redirect
-		$redirect     = $_POST['sc-redirect'];
+		$redirect      = $_POST['sc-redirect'];
+		$fail_redirect = $_POST['sc-redirect-fail'];
 		
 		// Get the credit card details submitted by the form
 		$token       = $_POST['stripeToken'];
@@ -67,14 +68,16 @@ function sc_charge_card() {
 				)
 			);
 			
-			$redirect = add_query_arg( array( 'payment' => 'success', 'amount' => $amount ), apply_filters( 'sc_redirect', $redirect ) );
+			$query_args = array( 'payment' => 'success', 'amount' => $amount );
 			
 			$failed = false;
 			
 			
 		} catch(Stripe_CardError $e) {
 		  
-			$redirect = add_query_arg( 'payment', 'failed', get_permalink() );
+			$redirect = $fail_redirect;
+			
+			$query_args = array( 'payment' => 'failed' );
 			
 			$failed = true;
 		}
@@ -92,11 +95,16 @@ function sc_charge_card() {
 			$sc_payment_details['currency']    = $currency;
 
 			Stripe_Checkout::get_instance()->session->set( 'sc_payment_details', $sc_payment_details );		
+		} else {
+			$sc_payment_details['show'] = true;
+			$sc_payment_details['fail'] = true;
+			
+			Stripe_Checkout::get_instance()->session->set( 'sc_payment_details', $sc_payment_details );	
 		}
 		
 		do_action( 'sc_redirect_before' );
 		
-		wp_redirect( $redirect );
+		wp_redirect( add_query_arg( $query_args, apply_filters( 'sc_redirect', $redirect, $failed ) ) );
 		
 		do_action( 'sc_redirect_after' );
 		
@@ -122,35 +130,53 @@ function sc_show_payment_details( $content ) {
 	
 	if( ! empty( $sc_payment_details ) ) {
 		if( $sc_payment_details['show'] != false ) {
-			$before_payment_details_html = '<div class="sc-payment-details-wrap">' . "\n";
+			if( empty( $sc_payment_details['fail'] ) ) {
+				$before_payment_details_html = '<div class="sc-payment-details-wrap">' . "\n";
 
-			$payment_details_html .= '<p>' . __( 'Congratulations. Your payment went through!', 'sc' ) . '</p>' . "\n";
-			$payment_details_html .= '<p>' . __( 'Here\'s what you bought:', 'sc' ) . '</p>' . "\n";
+				$payment_details_html .= '<p>' . __( 'Congratulations. Your payment went through!', 'sc' ) . '</p>' . "\n";
+				$payment_details_html .= '<p>' . __( 'Here\'s what you bought:', 'sc' ) . '</p>' . "\n";
 
-			if ( ! empty( $sc_payment_details['description'] ) ) {
-				$payment_details_html .= $sc_payment_details['description'] . '<br/>' . "\n";
-			}
-			if ( ! empty( $sc_payment_details['name'] ) ) {
-				$payment_details_html .= 'From: ' . $sc_payment_details['name'] . '<br/>' . "\n";
-			}
-			if ( ! empty( $sc_payment_details['amount'] ) ) {
-				$payment_details_html .=  '<br/>' . "\n";
-				$payment_details_html .=  '<strong>' . __( 'Total Paid: ', 'sc' );
-				$payment_details_html .=  sc_stripe_to_formatted_amount( $sc_payment_details['amount'], $sc_payment_details['currency'] ) . "\n";
-				$payment_details_html .=  ' ' . $sc_payment_details['currency'] . '</strong>' . "\n";
-			}
+				if ( ! empty( $sc_payment_details['description'] ) ) {
+					$payment_details_html .= $sc_payment_details['description'] . '<br/>' . "\n";
+				}
+				if ( ! empty( $sc_payment_details['name'] ) ) {
+					$payment_details_html .= 'From: ' . $sc_payment_details['name'] . '<br/>' . "\n";
+				}
+				if ( ! empty( $sc_payment_details['amount'] ) ) {
+					$payment_details_html .=  '<br/>' . "\n";
+					$payment_details_html .=  '<strong>' . __( 'Total Paid: ', 'sc' );
+					$payment_details_html .=  sc_stripe_to_formatted_amount( $sc_payment_details['amount'], $sc_payment_details['currency'] ) . "\n";
+					$payment_details_html .=  ' ' . $sc_payment_details['currency'] . '</strong>' . "\n";
+				}
 
-			$after_payment_details_html = '</div>' . "\n";
-			
-			$before_payment_details_html = apply_filters( 'sc_before_payment_details_html', $before_payment_details_html );
-			$payment_details_html        = apply_filters( 'sc_payment_details_html', $payment_details_html, $sc_payment_details );
-			$after_payment_details_html  = apply_filters( 'sc_after_payment_details_html', $after_payment_details_html );
-			
-			$content = $before_payment_details_html . $payment_details_html . $after_payment_details_html . $content;
-			
-			$sc_payment_details['show'] = false;
-			
-			Stripe_Checkout::get_instance()->session->set( 'sc_payment_details', $sc_payment_details );
+				$after_payment_details_html = '</div>' . "\n";
+
+				$before_payment_details_html = apply_filters( 'sc_before_payment_details_html', $before_payment_details_html );
+				$payment_details_html        = apply_filters( 'sc_payment_details_html', $payment_details_html, $sc_payment_details );
+				$after_payment_details_html  = apply_filters( 'sc_after_payment_details_html', $after_payment_details_html );
+
+				$content = $before_payment_details_html . $payment_details_html . $after_payment_details_html . $content;
+
+				$sc_payment_details['show'] = false;
+
+				Stripe_Checkout::get_instance()->session->set( 'sc_payment_details', $sc_payment_details );
+			} else {
+				$before_payment_details_html = '<div class="sc-payment-details-wrap sc-payment-details-error">' . "\n";
+
+				$payment_details_html .= '<p>' . __( 'Sorry, but for some reason your card was declined and your payment did not complete.', 'sc' ) . '</p>' . "\n";
+				
+				$after_payment_details_html = '</div>' . "\n";
+				
+				$before_payment_details_html = apply_filters( 'sc_before_payment_details_error_html', $before_payment_details_html );
+				$payment_details_html        = apply_filters( 'sc_payment_details_error_html', $payment_details_html, $sc_payment_details );
+				$after_payment_details_html  = apply_filters( 'sc_after_payment_details_error_html', $after_payment_details_html );
+
+				$content = $before_payment_details_html . $payment_details_html . $after_payment_details_html . $content;
+
+				$sc_payment_details['show'] = false;
+				
+				Stripe_Checkout::get_instance()->session->set( 'sc_payment_details', $sc_payment_details );
+			}
 		}
 	}
 	
@@ -290,6 +316,8 @@ function sc_activate_license() {
 		update_option( 'sc_settings_licenses', $sc_settings_licenses );
 		
 		
+	} else if( $activate_data->license == 'deactivated' ) {
+		$sc_licenses[$item] = 'deactivated';
 	} else {
 		$sc_licenses[$item] = 'invalid';
 	}
@@ -387,3 +415,18 @@ function sc_ga_campaign_url( $base_url, $source, $medium, $campaign ) {
 
 	return $url;
 }
+
+/**
+ * Disables opengraph tags to avoid conflicts with WP SEO by Yoast
+ *
+ * @since 1.2.0
+ */
+function sc_disable_seo_og() {
+	
+	$sc_payment_details = Stripe_Checkout::get_instance()->session->get( 'sc_payment_details' );
+	
+	if ( $sc_payment_details['show'] == true ) {
+		remove_action( 'template_redirect', 'wpseo_frontend_head_init', 999 );
+	}
+}
+add_action( 'template_redirect', 'sc_disable_seo_og', 1 );
