@@ -21,7 +21,7 @@ class Stripe_Checkout {
 	 *
 	 * @var     string
 	 */
-	protected $version = '1.2.0';
+	protected $version = '1.2.1';
 
 	/**
 	 * Unique identifier for your plugin.
@@ -132,14 +132,11 @@ class Stripe_Checkout {
 		$sc_cf   = false;
 		$sc_uea  = false;
 
-		// Uncomment to test individual license key statuses.
-		//echo '<pre>LICENSE KEY NOTICE<br>' . print_r( $sc_licenses, true ) . '</pre>';
-
 		if( class_exists( 'Stripe_Coupons' ) ) {
 			if( empty( $sc_options['sc_coup_license'] ) ) {
 				$sc_coup = true;
 			}
-			if( ! empty( $sc_options['sc_coup_license'] ) && ( ! empty( $sc_licenses['Stripe Coupons'] ) &&  $sc_licenses['Stripe Coupons'] == 'invalid' ) ) {
+			if( ( ! empty( $sc_options['sc_coup_license'] ) && ( ! empty( $sc_licenses['Stripe Coupons'] ) &&  $sc_licenses['Stripe Coupons'] != 'valid' ) ) || empty( $sc_licenses['Stripe Coupons'] ) ) {
 				$sc_coup = true;
 			}
 		}
@@ -148,7 +145,7 @@ class Stripe_Checkout {
 			if( empty( $sc_options['sc_cf_license'] ) ) {
 				$sc_cf = true;
 			}
-			if( ! empty( $sc_options['sc_cf_license'] ) && ( ! empty( $sc_licenses['Stripe Custom Fields'] ) &&  $sc_licenses['Stripe Custom Fields'] == 'invalid' ) ) {
+			if( ( ! empty( $sc_options['sc_cf_license'] ) && ( ! empty( $sc_licenses['Stripe Custom Fields'] ) &&  $sc_licenses['Stripe Custom Fields'] != 'valid' ) ) || empty( $sc_licenses['Stripe Custom Fields'] ) ) {
 				$sc_coup = true;
 			}
 		}
@@ -157,12 +154,12 @@ class Stripe_Checkout {
 			if( empty( $sc_options['sc_uea_license'] ) ) {
 				$sc_uea = true;
 			}
-			if( ! empty( $sc_options['sc_uea_license'] ) && ( ! empty( $sc_licenses['Stripe User Entered Amount'] ) &&  $sc_licenses['Stripe User Entered Amount'] == 'invalid' ) ) {
+			if( ( ! empty( $sc_options['sc_uea_license'] ) && ( ! empty( $sc_licenses['Stripe User Entered Amount'] ) &&  $sc_licenses['Stripe User Entered Amount'] != 'valid' ) ) || empty( $sc_licenses['Stripe User Entered Amount'] ) ) {
 				$sc_coup = true;
 			}
 		}
 		
-		// If one is of these is true then we need to output the message
+		// If one of these is true then we need to output the message
 		if( $sc_coup || $sc_cf || $sc_uea ) {
 			include_once( 'views/admin-license-notice.php' );
 		}
@@ -233,8 +230,14 @@ class Stripe_Checkout {
 	 * @since 1.0.0
 	 */
 	function enqueue_public_styles() {
+		
+		global $sc_options;
+		
 		wp_enqueue_style( 'stripe-checkout-css', 'https://checkout.stripe.com/v3/checkout/button.css', array(), null );
-		wp_enqueue_style( $this->plugin_slug . '-public', plugins_url( 'css/public.css', __FILE__ ), array( 'stripe-checkout-css' ), $this->version );
+		
+		if( empty( $sc_options['disable_css'] ) ) {
+			wp_enqueue_style( $this->plugin_slug . '-public', plugins_url( 'css/public.css', __FILE__ ), array( 'stripe-checkout-css' ), $this->version );
+		}
 	}
 	
 	/**
@@ -533,7 +536,7 @@ class Stripe_Checkout {
 
 		$screen = get_current_screen();
 		
-		if( in_array( $screen->id, $this->plugin_screen_hook_suffix ) ) {
+		if( ! empty( $this->plugin_screen_hook_suffix ) && in_array( $screen->id, $this->plugin_screen_hook_suffix ) ) {
 			return true;
 		}
 		

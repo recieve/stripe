@@ -308,8 +308,6 @@ function sc_section_callback( $args ) {
 function sc_license_callback( $args ) {
 	global $sc_options;
 	
-	$sc_licenses = get_option( 'sc_licenses' );
-
 	if ( isset( $sc_options[ $args['id'] ] ) ) {
 		$value = $sc_options[ $args['id'] ];
 	} else {
@@ -340,37 +338,20 @@ function sc_license_callback( $args ) {
 	$valid_message = '';
 	
 	$valid = sc_check_license( $value, $args['product'] );
-	
-	//echo '"' . $args['product'] . '" Valid check: ' . $valid . '<br>';
 
 	if( $valid == 'valid' ) {
-		$sc_licenses[$args['product']] = 'valid';
 		$license_class = 'sc-valid';
 		$valid_message = __( 'License is valid and active.', 'sc' );
 	} else if( $valid == 'notfound' ) {
-		$sc_licenses[$args['product']] = 'invalid';
 		$license_class = 'sc-invalid';
 		$valid_message = __( 'License service could not be found. Please contact support for assistance.', 'sc' );
-	} else if( $valid == 'invalid' ) {
-		$sc_licenses[$args['product']] = 'invalid';
-		$license_class = 'sc-invalid';
-		$valid_message = __( 'License is invalid.', 'sc' );
 	} else {
-		$sc_licenses[$args['product']] = 'deactivated';
 		$license_class = 'sc-inactive';
 		$valid_message = __( 'License is inactive.', 'sc' );
 	}
 	
-	update_option( 'sc_licenses', $sc_licenses );
-	
-	
 	$html .= '<span class="sc-spinner-wrap"><span class="spinner sc-spinner"></span></span>';
 	$html .= '<span class="sc-license-message ' . $license_class . '">' . $valid_message . '</span>';
-	
-	/*$button = '';
-	$button = apply_filters( 'sc_license_button', $button );*/
-	
-	//$html .= $button;
 	
 	// Render and style description text underneath if it exists.
 	if ( ! empty( $args['desc'] ) ) {
@@ -378,8 +359,6 @@ function sc_license_callback( $args ) {
 	}
 	
 	$html .= '</div>';
-	
-	//$html = '<pre>' . print_r( $sc_licenses, true ) . '</pre>';
 	
 	echo $html;
 }

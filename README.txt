@@ -111,6 +111,11 @@ There are three ways to install this plugin.
 
 == Changelog ==
 
+= 1.2.1 =
+
+* Fixed a bug with the disable CSS option.
+* Fixed a warning appearing for Network Admins of a multisite installation.
+
 = 1.2.0 =
 
 * Added verify_zip shortcode attribute.
