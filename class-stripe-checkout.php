@@ -21,7 +21,7 @@ class Stripe_Checkout {
 	 *
 	 * @var     string
 	 */
-	protected $version = '1.2.1';
+	protected $version = '1.2.2';
 
 	/**
 	 * Unique identifier for your plugin.
@@ -53,10 +53,6 @@ class Stripe_Checkout {
 	 */
 	protected $plugin_screen_hook_suffix = null;
 	
-	
-	protected $sc_edd_sl_store_url = 'http://wpstripe.net/';
-	
-	
 	public $session;
 
 	/**
@@ -74,7 +70,6 @@ class Stripe_Checkout {
 		}
 		
 		// Include required files.
-		//add_action( 'init', array( $this, 'includes' ), 1 );
 		$this->setup_constants();
 		$this->includes();
 		
@@ -93,14 +88,8 @@ class Stripe_Checkout {
 		// Add plugin listing "Settings" action link.
 		add_filter( 'plugin_action_links_' . plugin_basename( plugin_dir_path( __FILE__ ) . $this->plugin_slug . '.php' ), array( $this, 'settings_link' ) );
 		
-		// Set our plugin constants
-		//add_action( 'init', array( $this, 'setup_constants' ) );
-		
 		// Check WP version
 		add_action( 'admin_init', array( $this, 'check_wp_version' ) );
-		
-		// Add public JS
-		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_public_scripts' ) );
 		
 		// Add public CSS
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_public_styles' ) );
@@ -108,61 +97,6 @@ class Stripe_Checkout {
 		// Filters to add the settings page titles
 		add_filter( 'sc_settings_keys_title', array( $this, 'sc_settings_keys_title' ) );
 		add_filter( 'sc_settings_default_title', array( $this, 'sc_settings_default_title' ) );
-		add_filter( 'sc_settings_licenses_title', array( $this, 'sc_settings_licenses_title' ) );
-		
-		// Hook into wp_footer so we can localize our script AFTER all the shortcodes have been processed
-		add_action( 'wp_footer', array( $this, 'localize_shortcode_script' ) );
-		
-		// Add admin notice for license keys
-		add_action( 'admin_notices', array( $this, 'license_key_notice' ) );
-	}
-
-	/**
-	 * Check and display notice to admin if any add-on license keys are missing or invalid.
-	 *
-	 * @since 1.2.0
-	 */
-	function license_key_notice() {
-		
-		global $sc_options;
-		
-		$sc_licenses = get_option( 'sc_licenses' );
-		
-		$sc_coup = false;
-		$sc_cf   = false;
-		$sc_uea  = false;
-
-		if( class_exists( 'Stripe_Coupons' ) ) {
-			if( empty( $sc_options['sc_coup_license'] ) ) {
-				$sc_coup = true;
-			}
-			if( ( ! empty( $sc_options['sc_coup_license'] ) && ( ! empty( $sc_licenses['Stripe Coupons'] ) &&  $sc_licenses['Stripe Coupons'] != 'valid' ) ) || empty( $sc_licenses['Stripe Coupons'] ) ) {
-				$sc_coup = true;
-			}
-		}
-		
-		if( class_exists( 'Stripe_Custom_Fields' ) ) {
-			if( empty( $sc_options['sc_cf_license'] ) ) {
-				$sc_cf = true;
-			}
-			if( ( ! empty( $sc_options['sc_cf_license'] ) && ( ! empty( $sc_licenses['Stripe Custom Fields'] ) &&  $sc_licenses['Stripe Custom Fields'] != 'valid' ) ) || empty( $sc_licenses['Stripe Custom Fields'] ) ) {
-				$sc_coup = true;
-			}
-		}
-		
-		if( class_exists( 'Stripe_User_Entered_Amount' ) ) {
-			if( empty( $sc_options['sc_uea_license'] ) ) {
-				$sc_uea = true;
-			}
-			if( ( ! empty( $sc_options['sc_uea_license'] ) && ( ! empty( $sc_licenses['Stripe User Entered Amount'] ) &&  $sc_licenses['Stripe User Entered Amount'] != 'valid' ) ) || empty( $sc_licenses['Stripe User Entered Amount'] ) ) {
-				$sc_coup = true;
-			}
-		}
-		
-		// If one of these is true then we need to output the message
-		if( $sc_coup || $sc_cf || $sc_uea ) {
-			include_once( 'views/admin-license-notice.php' );
-		}
 	}
 	
 	/**
@@ -198,15 +132,6 @@ class Stripe_Checkout {
 	}
 	
 	/**
-	 * Set the title of the 'Licenses' tab
-	 * 
-	 * @since 1.1.1
-	 */
-	function sc_settings_licenses_title( $title ) {
-		return __( 'Add-On Licenses', 'sc' );
-	}
-	
-	/**
 	 * Set the title of the 'Stripe Keys' tab
 	 * 
 	 * @since 1.1.1
@@ -233,42 +158,10 @@ class Stripe_Checkout {
 		
 		global $sc_options;
 		
-		wp_enqueue_style( 'stripe-checkout-css', 'https://checkout.stripe.com/v3/checkout/button.css', array(), null );
-		
 		if( empty( $sc_options['disable_css'] ) ) {
-			wp_enqueue_style( $this->plugin_slug . '-public', plugins_url( 'css/public.css', __FILE__ ), array( 'stripe-checkout-css' ), $this->version );
+			wp_enqueue_style( $this->plugin_slug . '-public', SC_URL . 'public/css/public.css', array(), $this->version );
 		}
 	}
-	
-	/**
-	 * Load public facing JS
-	 * 
-	 * @since 1.0.0
-	 */
-	function enqueue_public_scripts() {
-		wp_enqueue_script( 'stripe-checkout', 'https://checkout.stripe.com/checkout.js', array(), null, true );
-		wp_enqueue_script( $this->plugin_slug . '-public', plugins_url( 'js/public.js', __FILE__ ), array( 'jquery', 'stripe-checkout' ), $this->version, true );
-		
-		// Register Parsley JS validation library.
-		// TODO Tried latest 2.0.2 (6/17/14) and it didn't work. Reverted to 2.0.0 (4/19/14).
-		wp_enqueue_script( 'parsley', plugins_url( 'js/parsley.min.js', __FILE__ ), array( 'jquery' ), null, true );
-	}
-	
-	/**
-	 * Function to localize the script variables being sent from the shortcodes
-	 * 
-	 * @since 1.1.1
-	 */
-	function localize_shortcode_script() {
-		
-		global $script_vars;
-		
-		wp_localize_script( SC_PLUGIN_SLUG . '-public', 'sc_script', $script_vars );
-		
-		// clear it out after we use it
-		$script_vars = array();
-	}
-	
 	
 	/**
 	 * Load admin scripts
@@ -278,8 +171,8 @@ class Stripe_Checkout {
 	public function enqueue_admin_scripts() {
 		
 		if( $this->viewing_this_plugin() ) {
-			wp_enqueue_script( 'bootstrap-switch', plugins_url( 'js/bootstrap-switch.min.js', __FILE__ ), array( 'jquery' ), null, true );
-			wp_enqueue_script( $this->plugin_slug . '-admin', plugins_url( 'js/admin.js', __FILE__ ), array( 'jquery', 'bootstrap-switch' ), $this->version, true );
+			wp_enqueue_script( 'bootstrap-switch', SC_URL . 'admin/js/bootstrap-switch.min.js', array( 'jquery' ), null, true );
+			wp_enqueue_script( $this->plugin_slug . '-admin', SC_URL . 'admin/js/admin.js', array( 'jquery', 'bootstrap-switch' ), $this->version, true );
 		}
 	}
 
@@ -291,8 +184,8 @@ class Stripe_Checkout {
 	public function enqueue_admin_styles() {
 
 		if ( $this->viewing_this_plugin() ) {
-			wp_enqueue_style( 'bootstrap-switch', plugins_url( 'css/bootstrap-switch.min.css', __FILE__ ), array(), null );
-			wp_enqueue_style( $this->plugin_slug .'-admin-styles', plugins_url( 'css/admin.css', __FILE__ ), array( 'bootstrap-switch' ), $this->version );
+			wp_enqueue_style( 'bootstrap-switch', SC_URL . 'admin/css/bootstrap-switch.min.css', array(), null );
+			wp_enqueue_style( $this->plugin_slug .'-admin-styles', SC_URL . 'admin/css/admin.css', array( 'bootstrap-switch' ), $this->version );
 		}
 	}
 	
@@ -336,11 +229,6 @@ class Stripe_Checkout {
 		// Plugin version
 		if ( ! defined( 'SC_PLUGIN_VERSION' ) ) {
 			define( 'SC_PLUGIN_VERSION', $this->version );
-		}
-		
-		// EDD SL Updater
-		if( ! defined( 'SC_EDD_SL_STORE_URL' ) ) {
-			define( 'SC_EDD_SL_STORE_URL', $this->sc_edd_sl_store_url );
 		}
 
 		// Website for this plugin
@@ -421,43 +309,7 @@ class Stripe_Checkout {
 			array( $this, 'display_plugin_admin_page' ),
 			'dashicons-cart'
 		);
-
-		/* TODO Remove add-ons submenu for now, which leaves no reason for the Settings submenu item either.
-		
-		// Change the first option to text "Settings" instead of "Stripe Checkout"
-		$this->plugin_screen_hook_suffix[] = add_submenu_page(
-			$this->plugin_slug,
-			$this->get_plugin_title() . ' ' . __( 'Settings', 'sc' ),
-			__( 'Settings', 'sc' ),
-			'manage_options',
-			$this->plugin_slug,
-			array( $this, 'display_plugin_admin_page' )
-		);
-		
-		// Add Add-Ons submenu page
-		$this->plugin_screen_hook_suffix[] = add_submenu_page(
-			$this->plugin_slug,
-			__( 'Add-ons', 'sc' ),
-			__( 'Add-ons', 'sc' ),
-			'manage_options',
-			$this->plugin_slug . '_addons',
-			array( $this, 'display_admin_addons_page' )
-		);
-
-		*/
 	}
-
-	/**
-	 * Function to handle the output of the Add Ons submenu
-	 *
-	 * @since 1.1.1
-	 */
-	/* TODO Remove add-ons submenu for now.
-
-	function display_admin_addons_page() {
-
-	}
-	*/
 
 	/**
 	 * Render the settings page for this plugin.
@@ -465,7 +317,7 @@ class Stripe_Checkout {
 	 * @since    1.0.0
 	 */
 	public function display_plugin_admin_page() {
-		include_once( 'views/admin.php' );
+		include_once( SC_PATH . 'admin/views/admin.php' );
 	}
 	
 	/**
@@ -481,15 +333,15 @@ class Stripe_Checkout {
 			require_once( 'libraries/stripe-php/Stripe.php' );
 		}
 
-		include_once( 'includes/class-sc-session.php' );
+		include_once( SC_PATH . 'public/includes/class-sc-session.php' );
 		
 		// Include any necessary functions
-		include_once( 'includes/misc-functions.php' );
+		include_once( SC_PATH . 'public/includes/misc-functions.php' );
 		
 		// Include shortcode functions
-		include_once( 'includes/shortcodes.php' );
+		include_once( SC_PATH . 'includes/shortcodes.php' );
 		
-		include_once( 'includes/register-settings.php' );
+		include_once( SC_PATH . 'includes/register-settings.php' );
 		
 		//$sc_options = sc_get_settings();
 		sc_set_defaults();
@@ -519,7 +371,7 @@ class Stripe_Checkout {
 	 */
 	public function settings_link( $links ) {
 
-		$setting_link = sprintf( '<a href="%s">%s</a>', add_query_arg( 'page', $this->plugin_slug, admin_url( 'options-general.php' ) ), __( 'Settings', 'sc' ) );
+		$setting_link = sprintf( '<a href="%s">%s</a>', add_query_arg( 'page', $this->plugin_slug, admin_url( 'admin.php' ) ), __( 'Settings', 'sc' ) );
 		array_unshift( $links, $setting_link );
 
 		return $links;
@@ -555,7 +407,6 @@ class Stripe_Checkout {
 			return;
 
 		// Delete stored value if "hide" button click detected (custom querystring value set to 1).
-		// or if on a PIB admin page. Then exit.
 		if ( ! empty( $_REQUEST['sc-dismiss-install-nag'] ) || $this->viewing_this_plugin() ) {
 			delete_option( 'sc_show_admin_install_notice' );
 			return;
@@ -563,7 +414,7 @@ class Stripe_Checkout {
 
 		// At this point show install notice. Show it only on the plugin screen.
 		if( get_current_screen()->id == 'plugins' ) {
-			include_once( 'views/admin-install-notice.php' );
+			include_once( SC_PATH . 'admin/views/admin-install-notice.php' );
 		}
 	}
 }

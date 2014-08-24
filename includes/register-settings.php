@@ -87,13 +87,6 @@ function sc_register_settings() {
 				'type' => 'text',
 				'size' => 'regular-text'
 			),
-			'stripe_total_label' => array(
-				'id'   => 'stripe_total_label',
-				'name' => __( 'Stripe Total Label', 'sc' ),
-				'desc' => __( 'The default label for the stripe_total shortcode.' , 'sc' ),
-				'type' => 'text',
-				'size' => 'regular-text'
-			),
 			'billing' => array(
 				'id'   => 'billing',
 				'name' => __( 'Enable Billing Address', 'sc' ),
@@ -122,7 +115,7 @@ function sc_register_settings() {
 			'disable_css' => array(
 				'id'   => 'disable_css',
 				'name' => __( 'Disable Form CSS', 'sc' ),
-				'desc' => __( 'Disable the plugin from ouputting the default form CSS. Also disables for all add-ons.', 'sc' ),
+				'desc' => __( 'Disable the plugin from ouputting the default form CSS.', 'sc' ),
 				'type' => 'checkbox'
 			)
 		),
@@ -297,69 +290,6 @@ function sc_section_callback( $args ) {
 		$html .= $args['desc'];
 	}
 
-	echo $html;
-}
-
-/*
- * License Keys callback function
- * 
- * @since 1.1.1
- */
-function sc_license_callback( $args ) {
-	global $sc_options;
-	
-	if ( isset( $sc_options[ $args['id'] ] ) ) {
-		$value = $sc_options[ $args['id'] ];
-	} else {
-		$value = isset( $args['std'] ) ? $args['std'] : '';
-	}
-	
-	$item = '';
-	
-	$html  = '<div class="license-wrap">';
-	
-	$size  = ( isset( $args['size'] ) && ! is_null( $args['size'] ) ) ? $args['size'] : 'regular-text';
-	$html .= "\n" . '<input type="text" class="' . $size . '" id="sc_settings_' . $args['section'] . '[' . $args['id'] . ']" name="sc_settings_' . $args['section'] . '[' . $args['id'] . ']" value="' . trim( esc_attr( $value ) ) . '"/>' . "\n";
-	
-	
-	$licenses = get_option( 'sc_licenses' );
-	
-	
-	// Add button on side of input
-	if( ! empty( $licenses[ $args['product'] ] ) && $licenses[ $args['product'] ] == 'valid' && ! empty( $value ) ) {
-		$html .= '<button class="button" data-sc-action="deactivate_license" data-sc-item="' .
-		         ( ! empty( $args['product'] ) ? $args['product'] : 'none' ) . '">' . __( 'Deactivate', 'sc' ) . '</button>';
-	} else {
-		$html .= '<button class="button" data-sc-action="activate_license" data-sc-item="' .
-		         ( ! empty( $args['product'] ) ? $args['product'] : 'none' ) . '">' . __( 'Activate', 'sc' ) . '</button>';
-	}
-	
-	$license_class = '';
-	$valid_message = '';
-	
-	$valid = sc_check_license( $value, $args['product'] );
-
-	if( $valid == 'valid' ) {
-		$license_class = 'sc-valid';
-		$valid_message = __( 'License is valid and active.', 'sc' );
-	} else if( $valid == 'notfound' ) {
-		$license_class = 'sc-invalid';
-		$valid_message = __( 'License service could not be found. Please contact support for assistance.', 'sc' );
-	} else {
-		$license_class = 'sc-inactive';
-		$valid_message = __( 'License is inactive.', 'sc' );
-	}
-	
-	$html .= '<span class="sc-spinner-wrap"><span class="spinner sc-spinner"></span></span>';
-	$html .= '<span class="sc-license-message ' . $license_class . '">' . $valid_message . '</span>';
-	
-	// Render and style description text underneath if it exists.
-	if ( ! empty( $args['desc'] ) ) {
-		$html .= '<p class="description">' . $args['desc'] . '</p>' . "\n";
-	}
-	
-	$html .= '</div>';
-	
 	echo $html;
 }
 

@@ -13,7 +13,7 @@
  * Plugin Name: Simple Stripe Checkout
  * Plugin URI: http://wpstripe.net
  * Description: Add a Stripe Checkout form overlay to your site in minutes using shortcodes.
- * Version: 1.2.1
+ * Version: 1.2.2
  * Author: Phil Derksen
  * Author URI: http://philderksen.com
  * License: GPL-2.0+
@@ -30,6 +30,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 if ( ! defined( 'SC_MAIN_FILE' ) ) {
 	define( 'SC_MAIN_FILE', __FILE__ );
+}
+
+if( ! defined( 'SC_PATH' ) ) {
+	define( 'SC_PATH', plugin_dir_path( __FILE__ ) );
+}
+
+if( ! defined( 'SC_URL' ) ) {
+	define( 'SC_URL', plugins_url( '', __FILE__ ) . '/' );
 }
 
 require_once( plugin_dir_path( __FILE__ ) . 'class-stripe-checkout.php' );

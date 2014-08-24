@@ -23,7 +23,7 @@ Instead of spending time building your own checkout forms you can use Stripe's, 
 
 This is a simple standalone Stripe checkout plugin. That's it. No other plugins required.
 
-Note that Stripe suggests that the pages hosting the checkout form be SSL (start with `https://`). [Read more about SSL](https://stripe.com/help/ssl).
+Note that Stripe suggests that the pages hosting the checkout form be SSL (they should start with `https://`). [Read more about SSL](https://stripe.com/help/ssl).
 
 ###Start Accepting Payments in 3 Easy Steps###
 
@@ -35,13 +35,13 @@ It only takes a couple minutes to add a payment form to your site.
 
 Viola! Now a payment button that opens your checkout form in an overlay will pop up.
 
-###Add-Ons Available in Stripe Checkout Pro Only###
+###Available in Stripe Checkout Pro Only###
 
 * **User Entered Amounts** - Let the customer enter what they want to pay.
 * **Coupon Codes** - Setup discount codes in your Stripe dashboard for customers to apply to their total.
 * **Custom Fields** - Record additional data along with each Stripe payment.
 
-[See Add-On Pricing & Demos](http://wpstripe.net/?utm_source=wordpress_org&utm_medium=link&utm_campaign=stripe_checkout)
+[See Pricing & Demos](http://wpstripe.net/?utm_source=wordpress_org&utm_medium=link&utm_campaign=stripe_checkout)
 
 Here are a few shortcode examples (amounts in U.S. cents):
 
@@ -66,7 +66,7 @@ If you want your customers to receive email receipts, make sure you enable this 
 ###Feature Requests and Updates###
 
 * [Submit feature requests in our support forums.](https://wordpress.org/support/plugin/stripe)
-* [Get notified of major updates.](http://eepurl.com/Q_ET9)
+* [Get notified of major updates.](http://eepurl.com/YMXvP)
 * [Follow this project on Github](https://github.com/pderksen/WP-Stripe-Checkout).
 
 == Installation ==
@@ -111,6 +111,11 @@ There are three ways to install this plugin.
 
 == Changelog ==
 
+= 1.2.2 =
+
+* Removed unnecessary code previously required for add-ons.
+* Updated to most recent Stripe PHP library (v1.17.1).
+
 = 1.2.1 =
 
 * Fixed a bug with the disable CSS option.
@@ -137,7 +142,7 @@ There are three ways to install this plugin.
 * Added many filters and hooks for extensibility.
 * Implemented add-on infrastructure.
 * General usuability improvements to settings pages.
-* Updated to most recent Stripe PHP library.
+* Updated to most recent Stripe PHP library (v1.16.0).
 * Included most recent Parsley JS validation library.
 * Moved in-plugin help to online help at wpstripe.net.
 
@@ -151,7 +156,7 @@ There are three ways to install this plugin.
 * Added shipping shortcode attribute.
 * Added enable_remember shortcode attribute.
 * Added success_redirect_url shortcode attribute.
-* Updated to most recent Stripe PHP library.
+* Updated to most recent Stripe PHP library (v1.13.0).
 * Added a couple of action and filter hooks.
 * Fixed bug where other instances of Stripe class were causing errors.
 * Removed a default string being added to customer description in Stripe dashboard.
