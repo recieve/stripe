@@ -21,7 +21,7 @@ class Stripe_Checkout {
 	 *
 	 * @var     string
 	 */
-	protected $version = '1.2.2';
+	protected $version = '1.2.3';
 
 	/**
 	 * Unique identifier for your plugin.
@@ -146,7 +146,7 @@ class Stripe_Checkout {
 	 * @since 1.1.1
 	 */
 	function sc_settings_default_title( $title ) {
-		return __( 'Default Settings', 'sc' );
+		return __( 'Site-wide Default Settings', 'sc' );
 	}
 	
 	/**
@@ -171,7 +171,7 @@ class Stripe_Checkout {
 	public function enqueue_admin_scripts() {
 		
 		if( $this->viewing_this_plugin() ) {
-			wp_enqueue_script( 'bootstrap-switch', SC_URL . 'admin/js/bootstrap-switch.min.js', array( 'jquery' ), null, true );
+			wp_enqueue_script( 'bootstrap-switch', SC_URL . 'admin/js/bootstrap-switch.min.js', array( 'jquery' ), $this->version, true );
 			wp_enqueue_script( $this->plugin_slug . '-admin', SC_URL . 'admin/js/admin.js', array( 'jquery', 'bootstrap-switch' ), $this->version, true );
 		}
 	}
@@ -184,7 +184,7 @@ class Stripe_Checkout {
 	public function enqueue_admin_styles() {
 
 		if ( $this->viewing_this_plugin() ) {
-			wp_enqueue_style( 'bootstrap-switch', SC_URL . 'admin/css/bootstrap-switch.min.css', array(), null );
+			wp_enqueue_style( 'bootstrap-switch', SC_URL . 'admin/css/bootstrap-switch.min.css', array(), $this->version );
 			wp_enqueue_style( $this->plugin_slug .'-admin-styles', SC_URL . 'admin/css/admin.css', array( 'bootstrap-switch' ), $this->version );
 		}
 	}
@@ -307,7 +307,7 @@ class Stripe_Checkout {
 			'manage_options',
 			$this->plugin_slug,
 			array( $this, 'display_plugin_admin_page' ),
-			'dashicons-cart'
+			plugins_url( '/assets/icon-16x16.png', __FILE__ )
 		);
 	}
 

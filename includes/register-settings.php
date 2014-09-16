@@ -33,7 +33,7 @@ function sc_register_settings() {
 				'name' => '',
 				'desc' => '<a href="' . sc_ga_campaign_url( SC_WEBSITE_BASE_URL . 'docs/shortcodes/stripe-checkout/', 'stripe_checkout', 'settings', 'docs' ) . '" target="_blank">' .
 				          __( 'See shortcode options and examples', 'sc' ) . '</a> ' . __( 'for', 'sc' ) . ' ' . Stripe_Checkout::get_plugin_title() .
-				          '<p class="description">' . __( 'Shortcode attributes take precedence and will always be used over default settings.', 'sc' ) . '</p>',
+				          '<p class="description">' . __( 'Shortcode attributes take precedence and will always override site-wide default settings.', 'sc' ) . '</p>',
 				'type' => 'section'
 			),
 			'name' => array(
@@ -116,6 +116,12 @@ function sc_register_settings() {
 				'id'   => 'disable_css',
 				'name' => __( 'Disable Form CSS', 'sc' ),
 				'desc' => __( 'Disable the plugin from ouputting the default form CSS.', 'sc' ),
+				'type' => 'checkbox'
+			),
+			'uninstall_save_settings' => array(
+				'id'   => 'uninstall_save_settings',
+				'name' => __( 'Save Settings', 'sc' ),
+				'desc' => __( 'Save your settings when uninstalling this plugin. Useful when upgrading or re-installing.', 'sc' ),
 				'type' => 'checkbox'
 			)
 		),
@@ -328,6 +334,69 @@ function sc_radio_callback( $args ) {
 }
 
 /*
+ * License Keys callback function
+ * 
+ * @since 1.1.1
+ */
+function sc_license_callback( $args ) {
+	global $sc_options;
+	
+	if ( isset( $sc_options[ $args['id'] ] ) ) {
+		$value = $sc_options[ $args['id'] ];
+	} else {
+		$value = isset( $args['std'] ) ? $args['std'] : '';
+	}
+	
+	$item = '';
+	
+	$html  = '<div class="license-wrap">';
+	
+	$size  = ( isset( $args['size'] ) && ! is_null( $args['size'] ) ) ? $args['size'] : 'regular-text';
+	$html .= "\n" . '<input type="text" class="' . $size . '" id="sc_settings_' . $args['section'] . '[' . $args['id'] . ']" name="sc_settings_' . $args['section'] . '[' . $args['id'] . ']" value="' . trim( esc_attr( $value ) ) . '"/>' . "\n";
+	
+	
+	$licenses = get_option( 'sc_licenses' );
+	
+	
+	// Add button on side of input
+	if( ! empty( $licenses[ $args['product'] ] ) && $licenses[ $args['product'] ] == 'valid' && ! empty( $value ) ) {
+		$html .= '<button class="button" data-sc-action="deactivate_license" data-sc-item="' .
+		         ( ! empty( $args['product'] ) ? $args['product'] : 'none' ) . '">' . __( 'Deactivate', 'sc' ) . '</button>';
+	} else {
+		$html .= '<button class="button" data-sc-action="activate_license" data-sc-item="' .
+		         ( ! empty( $args['product'] ) ? $args['product'] : 'none' ) . '">' . __( 'Activate', 'sc' ) . '</button>';
+	}
+	
+	$license_class = '';
+	$valid_message = '';
+	
+	$valid = sc_check_license( $value, $args['product'] );
+
+	if( $valid == 'valid' ) {
+		$license_class = 'sc-valid';
+		$valid_message = __( 'License is valid and active.', 'sc' );
+	} else if( $valid == 'notfound' ) {
+		$license_class = 'sc-invalid';
+		$valid_message = __( 'License service could not be found. Please contact support for assistance.', 'sc' );
+	} else {
+		$license_class = 'sc-inactive';
+		$valid_message = __( 'License is inactive.', 'sc' );
+	}
+	
+	$html .= '<span class="sc-spinner-wrap"><span class="spinner sc-spinner"></span></span>';
+	$html .= '<span class="sc-license-message ' . $license_class . '">' . $valid_message . '</span>';
+	
+	// Render and style description text underneath if it exists.
+	if ( ! empty( $args['desc'] ) ) {
+		$html .= '<p class="description">' . $args['desc'] . '</p>' . "\n";
+	}
+	
+	$html .= '</div>';
+	
+	echo $html;
+}
+
+/*
  *  Default callback function if correct one does not exist
  * 
  * @since 1.0.0
@@ -347,6 +416,7 @@ function sc_set_defaults() {
 	if( ! get_option( 'sc_has_run' ) ) {
 		$defaults = get_option( 'sc_settings_default' );
 		$defaults['enable_remember'] = 1;
+		$defaults['uninstall_save_settings'] = 1;
 		update_option( 'sc_settings_default', $defaults );
 		
 		add_option( 'sc_has_run', 1 );
