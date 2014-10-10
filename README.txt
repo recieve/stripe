@@ -66,8 +66,8 @@ If you want your customers to receive email receipts, make sure you enable this 
 
 ###Feature Requests and Updates###
 
-* [Submit feature requests in our support forums](https://wordpress.org/support/plugin/stripe)
-* [Get notified of major updates](http://eepurl.com/YMXvP)
+* [Public roadmap and feature requests](https://trello.com/b/neTGsBIY)
+* [Get notified when new features are released](http://eepurl.com/YMXvP)
 * [Follow this project on Github](https://github.com/pderksen/WP-Stripe-Checkout)
 
 == Installation ==
@@ -112,6 +112,13 @@ There are three ways to install this plugin.
 4. Settings: Site-wide defaults
 
 == Changelog ==
+
+= 1.2.4 =
+
+* Allow display of more charge details on the payment success page. This is made possible by utilizing the Stripe charge ID to retrieve the entire charge object via the Stripe API.
+* Updated to most recent Stripe PHP library (v1.17.2).
+* Updated 3rd party JS/CSS library Bootstrap Switch.
+* Improved messaging for minimum required amount by Stripe (50 units).
 
 = 1.2.3 =
 

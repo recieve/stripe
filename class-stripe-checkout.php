@@ -21,7 +21,7 @@ class Stripe_Checkout {
 	 *
 	 * @var     string
 	 */
-	protected $version = '1.2.3';
+	protected $version = '1.2.4';
 
 	/**
 	 * Unique identifier for your plugin.
@@ -87,6 +87,11 @@ class Stripe_Checkout {
 
 		// Add plugin listing "Settings" action link.
 		add_filter( 'plugin_action_links_' . plugin_basename( plugin_dir_path( __FILE__ ) . $this->plugin_slug . '.php' ), array( $this, 'settings_link' ) );
+
+		// Add upgrade link (if not already in Pro).
+		if ( ! class_exists( 'Stripe_Checkout_Pro' ) ) {
+			add_filter( 'plugin_action_links_' . plugin_basename( plugin_dir_path( __FILE__ ) . $this->plugin_slug . '.php' ), array( $this, 'purchase_pro_link' ) );
+		}
 		
 		// Check WP version
 		add_action( 'admin_init', array( $this, 'check_wp_version' ) );
@@ -278,7 +283,6 @@ class Stripe_Checkout {
 		// If the single instance hasn't been set, set it now.
 		if ( null == self::$instance ) {
 			self::$instance = new self;
-			self::$instance->session = new SC_Session();
 		}
 
 		return self::$instance;
@@ -332,8 +336,6 @@ class Stripe_Checkout {
 		if( ! class_exists( 'Stripe' ) ) {
 			require_once( 'libraries/stripe-php/Stripe.php' );
 		}
-
-		include_once( SC_PATH . 'public/includes/class-sc-session.php' );
 		
 		// Include any necessary functions
 		include_once( SC_PATH . 'public/includes/misc-functions.php' );
@@ -374,6 +376,13 @@ class Stripe_Checkout {
 		$setting_link = sprintf( '<a href="%s">%s</a>', add_query_arg( 'page', $this->plugin_slug, admin_url( 'admin.php' ) ), __( 'Settings', 'sc' ) );
 		array_unshift( $links, $setting_link );
 
+		return $links;
+	}
+	
+	public function purchase_pro_link( $links ) {
+		$pro_link = sprintf( '<a href="%s">%s</a>', sc_ga_campaign_url( SC_WEBSITE_BASE_URL, 'stripe_checkout', 'plugin_listing', 'pro_upgrade' ), __( 'Purchase Pro', 'sc' ) );
+		array_push( $links, $pro_link );
+		
 		return $links;
 	}
 
