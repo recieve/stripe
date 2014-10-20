@@ -113,6 +113,11 @@ There are three ways to install this plugin.
 
 == Changelog ==
 
+= 1.2.5 =
+
+* Fixed a bug with the remember me option.
+* Fixed a bug with the test_mode attribute.
+
 = 1.2.4 =
 
 * Allow display of more charge details on the payment success page. This is made possible by utilizing the Stripe charge ID to retrieve the entire charge object via the Stripe API.

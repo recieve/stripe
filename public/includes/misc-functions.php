@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since 1.2.4
  */
-function sc_set_stripe_key() {
+function sc_set_stripe_key( $test_mode = 'false' ) {
 	global $sc_options;
 	$key = '';
 
@@ -47,6 +47,7 @@ function sc_charge_card() {
 		$description = $_POST['sc-description'];
 		$store_name  = $_POST['sc-name'];
 		$currency    = $_POST['sc-currency'];
+		$test_mode   = ( isset( $_POST['sc_test_mode'] ) ? $_POST['sc_test_mode'] : 'false' );
 
 		$charge = array();
 		$query_args = array();
@@ -54,7 +55,7 @@ function sc_charge_card() {
 		$meta = array();
 		$meta = apply_filters( 'sc_meta_values', $meta );
 
-		sc_set_stripe_key();
+		sc_set_stripe_key( $test_mode );
 
 		// Create new customer
 		$new_customer = Stripe_Customer::create( array(
@@ -96,7 +97,12 @@ function sc_charge_card() {
 		unset( $_POST['stripeToken'] );
 
 		do_action( 'sc_redirect_before' );
-
+		
+		if( $test_mode == 'true' ) {
+			$query_args['test_mode'] = 'true';
+		}
+		
+		
 		wp_redirect( add_query_arg( $query_args, apply_filters( 'sc_redirect', $redirect, $failed ) ) );
 
 		do_action( 'sc_redirect_after' );
@@ -119,8 +125,10 @@ function sc_show_payment_details( $content ) {
 
 	// TODO $html out once finalized.
 	$html = '';
+	
+	$test_mode = ( isset( $_GET['test_mode'] ) ? 'true' : 'false' );
 
-	sc_set_stripe_key();
+	sc_set_stripe_key( $test_mode );
 
 	// Successful charge output.
 	if ( isset( $_GET['charge'] ) && ! isset( $_GET['charge_failed'] ) ) {
