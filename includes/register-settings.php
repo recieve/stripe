@@ -80,6 +80,12 @@ function sc_register_settings() {
 				'type' => 'text',
 				'size' => 'regular-text'
 			),
+			'disable_success_message' => array(
+				'id'   => 'disable_success_message',
+				'name' => __( 'Disable Success Message', 'sc' ),
+				'desc' => __( 'Disable default success message. Useful if you are redirecting to your own success page.', 'sc' ),
+				'type' => 'checkbox'
+			),
 			'failure_redirect_url' => array(
 				'id'   => 'failure_redirect_url',
 				'name' => __( 'Failure Redirect URL', 'sc' ),
