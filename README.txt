@@ -113,6 +113,11 @@ There are three ways to install this plugin.
 
 == Changelog ==
 
+= 1.2.7 =
+
+* Removed shipping address support. Not supported natively by Stripe Checkout now ([see docs](https://stripe.com/docs/checkout)).
+* Simplified text domain function.
+
 = 1.2.6 =
 
 * Added option to disable the default success message output.
