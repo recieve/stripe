@@ -32,13 +32,22 @@ function sc_stripe_shortcode( $attr, $content = null ) {
 					'billing'               => ( ! empty( $sc_options['billing'] ) ? 'true' : 'false' ),    // true or false
 					'payment_button_label'  => ( ! empty( $sc_options['payment_button_label'] ) ? $sc_options['payment_button_label'] : __( 'Pay with Card', 'sc' ) ),
 					'enable_remember'       => ( ! empty( $sc_options['enable_remember'] ) ? 'true' : 'false' ),    // true or false
+					'bitcoin'               => ( ! empty( $sc_options['bitcoin'] ) ? 'true' : 'false' ),    // true or false
 					'success_redirect_url'  => ( ! empty( $sc_options['success_redirect_url'] ) ? $sc_options['success_redirect_url'] : get_permalink() ),
 					'failure_redirect_url'  => ( ! empty( $sc_options['failure_redirect_url'] ) ? $sc_options['failure_redirect_url'] : get_permalink() ),
 					'prefill_email'         => 'false',
 					'verify_zip'            => ( ! empty( $sc_options['verify_zip'] ) ? 'true' : 'false' ),
-					'test_mode'             => 'false'
+					'test_mode'             => 'false',
+					'id'               => null,
 				), $attr, 'stripe' ) );
 	
+	
+	if ( $id === null || empty( $id ) ) {
+		$id = 'sc_checkout_form_' . $uid;
+		
+		// Increment static uid counter
+		$uid++;
+	}
 	
 	// Check if in test mode or live mode
 	if( ! empty( $sc_options['enable_live_key'] ) && $sc_options['enable_live_key'] == 1 && $test_mode != 'true' ) {
@@ -73,23 +82,27 @@ function sc_stripe_shortcode( $attr, $content = null ) {
 		}
 	}
 
-	$html  = '<form id="sc_checkout_form_' . $uid . '" method="POST" action="" data-sc-id="' . $uid . '" class="sc-checkout-form">';
+	$html  =
+		'<form method="POST" action="" class="sc-checkout-form" ' .
+		'id="' . esc_attr( $id ) . '" ' .
+		'data-sc-id="' . $uid . '">';
 	
-	$html .= '<script
-				src="https://checkout.stripe.com/checkout.js" class="stripe-button"
-				data-key="' . $data_key . '" ' .
-				( ! empty( $image_url ) ? 'data-image="' . $image_url . '" ' : '' ) . 
-				( ! empty( $name ) ? 'data-name="' . $name . '" ' : '' ) .
-				( ! empty( $description ) ? 'data-description="' . $description . '" ' : '' ) .
-				( ! empty( $amount ) ? 'data-amount="' . $amount . '" ' : '' ) .
-				( ! empty( $currency ) ? 'data-currency="' . $currency . '" ' : '' ) .
-				( ! empty( $checkout_button_label ) ? 'data-panel-label="' . $checkout_button_label . '" ' : '' ) .
-				( ! empty( $verify_zip ) ? 'data-zip-code="' . $verify_zip . '" ' : '' ) .
-				( ! empty( $prefill_email ) && 'false' != $prefill_email ? 'data-email="' . $prefill_email . '" ' : '' ) .
-				( ! empty( $payment_button_label ) ? 'data-label="' . $payment_button_label . '" ' : '' ) .
-				( ! empty( $enable_remember ) ? 'data-allow-remember-me="' . $enable_remember . '" ' : 'data-allow-remember-me="true" ' ) .
-				( ! empty( $billing ) ? 'data-billing-address="' . $billing . '" ' : 'data-billing-address="false" ' ) .
-				'></script>';
+	$html .=
+		'<script src="https://checkout.stripe.com/checkout.js" class="stripe-button"
+		data-key="' . $data_key . '" ' .
+		( ! empty( $image_url ) ? 'data-image="' . $image_url . '" ' : '' ) .
+		( ! empty( $name ) ? 'data-name="' . $name . '" ' : '' ) .
+		( ! empty( $description ) ? 'data-description="' . $description . '" ' : '' ) .
+		( ! empty( $amount ) ? 'data-amount="' . $amount . '" ' : '' ) .
+		( ! empty( $currency ) ? 'data-currency="' . $currency . '" ' : '' ) .
+		( ! empty( $checkout_button_label ) ? 'data-panel-label="' . $checkout_button_label . '" ' : '' ) .
+		( ! empty( $verify_zip ) ? 'data-zip-code="' . $verify_zip . '" ' : '' ) .
+		( ! empty( $prefill_email ) && 'false' != $prefill_email ? 'data-email="' . $prefill_email . '" ' : '' ) .
+		( ! empty( $payment_button_label ) ? 'data-label="' . $payment_button_label . '" ' : '' ) .
+		( ! empty( $enable_remember ) ? 'data-allow-remember-me="' . $enable_remember . '" ' : 'data-allow-remember-me="true" ' ) .
+		( ! empty( $bitcoin ) ? 'data-bitcoin="' . $bitcoin . '" ' : '' ) .
+		( ! empty( $billing ) ? 'data-billing-address="' . $billing . '" ' : 'data-billing-address="false" ' ) .
+		'></script>';
 	
 	$html .= '<input type="hidden" name="sc-name" value="' . esc_attr( $name ) . '" />';
 	$html .= '<input type="hidden" name="sc-description" value="' . esc_attr( $description ) . '" />';
@@ -101,11 +114,12 @@ function sc_stripe_shortcode( $attr, $content = null ) {
 	if( $test_mode == 'true' ) {
 		$html .= '<input type="hidden" name="sc_test_mode" value="true" />';
 	}
+	
+	// Add a filter here to allow developers to hook into the form
+	$filter_html = '';
+	$html .= apply_filters( 'sc_before_payment_button', $filter_html );
 
 	$html .= '</form>';
-
-	// Increment static uid counter
-	$uid++;
 
 	//Stripe minimum amount allowed.
 	$stripe_minimum_amount = 50;

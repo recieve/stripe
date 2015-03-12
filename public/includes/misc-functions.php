@@ -11,6 +11,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+// Check for and include Stripe PHP library here until we refactor.
+if ( ! class_exists( 'Stripe' ) ) {
+	require_once( SC_PATH . 'libraries/stripe-php/init.php' );
+}
+
 /**
  * Common method to set Stripe API key from options.
  *
@@ -27,7 +32,7 @@ function sc_set_stripe_key( $test_mode = 'false' ) {
 		$key = ( ! empty( $sc_options['test_secret_key'] ) ? $sc_options['test_secret_key'] : '' );
 	}
 
-	Stripe::setApiKey( $key );
+	\Stripe\Stripe::setApiKey( $key );
 }
 
 /**
@@ -36,79 +41,75 @@ function sc_set_stripe_key( $test_mode = 'false' ) {
  * @since 1.0.0
  */
 function sc_charge_card() {
-	if( isset( $_POST['stripeToken'] ) ) {
 
-		$redirect      = $_POST['sc-redirect'];
-		$fail_redirect = $_POST['sc-redirect-fail'];
+	$redirect      = $_POST['sc-redirect'];
+	$fail_redirect = $_POST['sc-redirect-fail'];
 
-		// Get the credit card details submitted by the form
-		$token       = $_POST['stripeToken'];
-		$amount      = $_POST['sc-amount'];
-		$description = $_POST['sc-description'];
-		$store_name  = $_POST['sc-name'];
-		$currency    = $_POST['sc-currency'];
-		$test_mode   = ( isset( $_POST['sc_test_mode'] ) ? $_POST['sc_test_mode'] : 'false' );
+	// Get the credit card details submitted by the form
+	$token       = $_POST['stripeToken'];
+	$amount      = $_POST['sc-amount'];
+	$description = $_POST['sc-description'];
+	$store_name  = $_POST['sc-name'];
+	$currency    = $_POST['sc-currency'];
+	$test_mode   = ( isset( $_POST['sc_test_mode'] ) ? $_POST['sc_test_mode'] : 'false' );
 
-		$charge = array();
-		$query_args = array();
+	$charge = array();
+	$query_args = array();
 
-		$meta = array();
-		$meta = apply_filters( 'sc_meta_values', $meta );
+	$meta = array();
+	$meta = apply_filters( 'sc_meta_values', $meta );
 
-		sc_set_stripe_key( $test_mode );
+	sc_set_stripe_key( $test_mode );
 
-		// Create new customer
-		$new_customer = Stripe_Customer::create( array(
-			'email' => $_POST['stripeEmail'],
-			'card'  => $token
-		));
+	// Create new customer
+	$new_customer = \Stripe\Customer::create( array(
+		'email' => $_POST['stripeEmail'],
+		'card'  => $token
+	));
 
-		$amount = apply_filters( 'sc_charge_amount', $amount );
+	// Create the charge on Stripe's servers - this will charge the user's default card
+	try {
+		$charge = \Stripe\Charge::create( array(
+				'amount'      => $amount, // amount in cents, again
+				'currency'    => $currency,
+				'customer'    => $new_customer['id'],
+				'description' => $description,
+				'metadata'    => $meta
+			)
+		);
 
-		// Create the charge on Stripe's servers - this will charge the user's default card
-		try {
-			$charge = Stripe_Charge::create( array(
-					'amount'      => $amount, // amount in cents, again
-					'currency'    => $currency,
-					'customer'    => $new_customer['id'],
-					'description' => $description,
-					'metadata'    => $meta
-				)
-			);
+		// Add Stripe charge ID to querystring.
+		$query_args = array( 'charge' => $charge->id, 'store_name' => urlencode( $store_name ) );
 
-			// Add Stripe charge ID to querystring.
-			$query_args = array( 'charge' => $charge->id, 'store_name' => urlencode( $store_name ) );
+		$failed = false;
 
-			$failed = false;
+	} catch( \Stripe\Error\Card $e ) {
 
-		} catch(Stripe_CardError $e) {
+		// Catch Stripe errors
+		$redirect = $fail_redirect;
 
-			// Catch Stripe errors
-			$redirect = $fail_redirect;
-			
-			$e = $e->getJsonBody();
-			
-			// Add failure indicator to querystring.
-			$query_args = array( 'charge' => $e['error']['charge'], 'charge_failed' => true );
+		$e = $e->getJsonBody();
 
-			$failed = true;
-		}
+		// Add failure indicator to querystring.
+		$query_args = array( 'charge' => $e['error']['charge'], 'charge_failed' => true );
 
-		unset( $_POST['stripeToken'] );
-
-		do_action( 'sc_redirect_before' );
-		
-		if( $test_mode == 'true' ) {
-			$query_args['test_mode'] = 'true';
-		}
-		
-		
-		wp_redirect( add_query_arg( $query_args, apply_filters( 'sc_redirect', $redirect, $failed ) ) );
-
-		do_action( 'sc_redirect_after' );
-
-		exit;
+		$failed = true;
 	}
+
+	unset( $_POST['stripeToken'] );
+
+	do_action( 'sc_redirect_before' );
+
+	if( $test_mode == 'true' ) {
+		$query_args['test_mode'] = 'true';
+	}
+
+
+	wp_redirect( add_query_arg( $query_args, apply_filters( 'sc_redirect', $redirect, $failed ) ) );
+
+	do_action( 'sc_redirect_after' );
+
+	exit;
 }
 
 // We only want to run the charge if the Token is set
@@ -123,62 +124,74 @@ if( isset( $_POST['stripeToken'] ) ) {
  */
 function sc_show_payment_details( $content ) {
 	
-	global $sc_options;
-
-	// TODO $html out once finalized.
-	$html = '';
 	
-	$test_mode = ( isset( $_GET['test_mode'] ) ? 'true' : 'false' );
+	if( in_the_loop() && is_main_query() ) {
+		global $sc_options;
 
-	sc_set_stripe_key( $test_mode );
+		$html = '';
 
-	// Successful charge output.
-	if ( isset( $_GET['charge'] ) && ! isset( $_GET['charge_failed'] ) ) {
-		
-		if( empty( $sc_options['disable_success_message'] ) ) {
-			$charge_id = esc_html( $_GET['charge'] );
+		$test_mode = ( isset( $_GET['test_mode'] ) ? 'true' : 'false' );
 
-			// https://stripe.com/docs/api/php#charges
-			$charge_response = Stripe_Charge::retrieve( $charge_id );
+		sc_set_stripe_key( $test_mode );
 
-			$html = '<div class="sc-payment-details-wrap">';
+		// Successful charge output.
+		if ( isset( $_GET['charge'] ) && !isset( $_GET['charge_failed'] ) ) {
 
-			$html .= '<p>' . __( 'Congratulations. Your payment went through!', 'sc' ) . '</p>' . "\n";
+			if ( empty( $sc_options['disable_success_message'] ) ) {
 
-			if( ! empty( $charge_response->description ) ) {
-				$html .= '<p>' . __( "Here's what you bought:", 'sc' ) . '</p>';
-				$html .= $charge_response->description . '<br>' . "\n";
+				$charge_id = esc_html( $_GET['charge'] );
+
+				// https://stripe.com/docs/api/php#charges
+				$charge_response = \Stripe\Charge::retrieve( $charge_id );
+
+				$html = '<div class="sc-payment-details-wrap">' . "\n";
+
+				$html .= '<p>' . __( 'Congratulations. Your payment went through!', 'sc' ) . '</p>' . "\n";
+				$html .= '<p>' . "\n";
+
+				if ( ! empty( $charge_response->description ) ) {
+					$html .= __( "Here's what you purchased:", 'sc' ) . '<br/>' . "\n";
+					$html .= $charge_response->description . '<br/>' . "\n";
+				}
+
+				if ( isset( $_GET['store_name'] ) && ! empty( $_GET['store_name'] ) ) {
+					$html .= 'From: ' . esc_html( $_GET['store_name'] ) . '<br/>' . "\n";
+				}
+
+				$html .= '<br/>' . "\n";
+				$html .= '<strong>' . __( 'Total Paid: ', 'sc' ) . sc_stripe_to_formatted_amount( $charge_response->amount, $charge_response->currency ) . ' ' .
+						 strtoupper( $charge_response->currency ) . '</strong>' . "\n";
+
+				$html .= '</p>' . "\n";
+
+				$html .= '<p>' . sprintf( __( 'Your transaction ID is: %s', 'sc' ), $charge_id ) . '</p>' . "\n";
+
+				$html .= '</div>' . "\n";
+
+				return apply_filters( 'sc_payment_details', $html, $charge_response ) . $content;
+
+			} else {
+
+				return $content;
 			}
 
-			if ( isset( $_GET['store_name'] ) && ! empty( $_GET['store_name'] ) ) {
-				$html .= 'From: ' . esc_html( $_GET['store_name'] ) . '<br/>' . "\n";
-			}
+		} elseif ( isset( $_GET['charge_failed'] ) ) {
 
-			$html .= '<br><strong>' . __( 'Total Paid: ', 'sc' ) . sc_stripe_to_formatted_amount( $charge_response->amount, $charge_response->currency ) . ' ' . 
-					strtoupper( $charge_response->currency ) . '</strong>' . "\n";
+			// LITE ONLY: Payment details error included in payment details function.
 
-			$html .= '<p>' . sprintf( __( 'Your transaction ID is: %s', 'sc' ), $charge_id ) . '</p>';
+			$html  = '<div class="sc-payment-details-wrap sc-payment-details-error">' . "\n";
+			$html .= '<p>' . "\n";
 
-			$html .= '</div>';
+			$html .= __( 'Sorry, but there has been an error processing your payment.', 'sc' ) . "\n";
+			$html .= __( 'If the problem persists please contact the site owner.', 'sc' ) . "\n";
 
+			$html .= '</p>' . "\n";
+			$html .= '</div>' . "\n";
 
-			return apply_filters( 'sc_payment_details', $html, $charge_response ) . $content;
-		} else { 
-			return $content;
+			return apply_filters( 'sc_payment_details_error', $html ) . $content;
 		}
+	}
 
-	} elseif ( isset( $_GET['charge_failed'] ) ) {
-		// TODO Failed charge output.
-		
-		$html  = '<div class="sc-payment-details-wrap sc-payment-details-error">';
-		$html .= __( 'Sorry, but your card was declined and your payment was not processed.', 'sc' );
-		$html .= '<br><br>' . sprintf( __( 'Transaction ID: %s', 'sc' ), esc_html( $_GET['charge'] ) );
-		$html .= '</div>';
-		
-		return apply_filters( 'sc_payment_details_error', $html ) . $content;
-
-	} 
-	
 	return $content;
 }
 add_filter( 'the_content', 'sc_show_payment_details' );
@@ -289,3 +302,26 @@ function sc_disable_seo_og() {
 		remove_action( 'template_redirect', 'wpseo_frontend_head_init', 999 );
 	}
 }
+
+/**
+ * Filters the content to remove any extra paragraph or break tags
+ * caused by shortcodes.
+ *
+ * @since 1.0.0
+ *
+ * @param string $content  String of HTML content.
+ * @return string $content Amended string of HTML content.
+ * 
+ * REF: https://thomasgriffin.io/remove-empty-paragraph-tags-shortcodes-wordpress/
+ */
+function sc_shortcode_fix( $content ) {
+
+    $array = array(
+        '<p>['    => '[',
+        ']</p>'   => ']',
+        ']<br />' => ']'
+    );
+	
+    return strtr( $content, $array );
+}
+add_filter( 'the_content', 'sc_shortcode_fix' );

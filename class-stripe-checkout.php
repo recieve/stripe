@@ -21,7 +21,7 @@ class Stripe_Checkout {
 	 *
 	 * @var     string
 	 */
-	protected $version = '1.2.9';
+	protected $version = '1.3.0';
 
 	/**
 	 * Unique identifier for your plugin.
@@ -71,14 +71,15 @@ class Stripe_Checkout {
 		
 		// Include required files.
 		$this->setup_constants();
-		$this->includes();
+		//$this->includes();
+		add_action( 'init', array( $this, 'includes' ), 1 );
 		
 		// Add the options page and menu item.
 		add_action( 'admin_menu', array( $this, 'add_plugin_admin_menu' ), 2 );
 
 		// Enqueue admin styles.
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_styles' ) );
-
+		
 		// Add admin notice after plugin activation. Also check if should be hidden.
 		add_action( 'admin_notices', array( $this, 'admin_install_notice' ) );
 
@@ -97,11 +98,34 @@ class Stripe_Checkout {
 		add_action( 'admin_init', array( $this, 'check_wp_version' ) );
 		
 		// Add public CSS
-		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_public_styles' ) );
+		add_action( 'init', array( $this, 'enqueue_public_styles' ) );
 		
 		// Filters to add the settings page titles
 		add_filter( 'sc_settings_keys_title', array( $this, 'sc_settings_keys_title' ) );
 		add_filter( 'sc_settings_default_title', array( $this, 'sc_settings_default_title' ) );
+		
+		// Load scripts when posts load so we know if we need to include them or not
+		add_filter( 'the_posts', array( $this, 'load_scripts' ) );
+	}
+	
+	function load_scripts( $posts ){
+		
+		global $sc_options;
+		
+		if ( empty( $posts ) ) {
+			return $posts;
+		}
+		
+		foreach ( $posts as $post ){
+			if ( ( strpos( $post->post_content, '[stripe' ) !== false ) || ( ! empty( $sc_options['always_enqueue'] ) ) ) {
+				// Load CSS
+				wp_enqueue_style( $this->plugin_slug . '-public' );
+				
+				break;
+			}
+		}
+
+		return $posts;
 	}
 	
 	/**
@@ -175,7 +199,7 @@ class Stripe_Checkout {
 		global $sc_options;
 		
 		if( empty( $sc_options['disable_css'] ) ) {
-			wp_enqueue_style( $this->plugin_slug . '-public', SC_URL . 'public/css/public.css', array(), $this->version );
+			wp_register_style( $this->plugin_slug . '-public', SC_URL . 'public/css/public.css', array(), $this->version );
 		}
 	}
 
@@ -315,11 +339,16 @@ class Stripe_Checkout {
 	public function includes() {
 		
 		global $sc_options;
-		
-		if( ! class_exists( 'Stripe' ) ) {
-			require_once( 'libraries/stripe-php/Stripe.php' );
+
+		// TODO Add back to includes() inside class after refactor and not needed in misc-functions.php.
+		// TODO Check for curl -- function_exists( 'curl_version' )
+		// TODO Check for PHP 5.3.3 (or whatever stripe-php currenly requires).
+		/*
+		if ( ! class_exists( 'Stripe' ) ) {
+			require_once( SC_PATH . 'libraries/stripe-php/init.php' );
 		}
-		
+		*/
+
 		// Include any necessary functions
 		include_once( SC_PATH . 'public/includes/misc-functions.php' );
 		

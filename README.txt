@@ -111,6 +111,18 @@ There are three ways to install this plugin.
 
 == Changelog ==
 
+= 1.3.0 - March 12, 2015 =
+
+* Added the ability to accept Bitcoin payments.
+* Updated to most recent Stripe PHP library (v2.1.1), which now requires PHP 5.3.3 or higher.
+* Scripts and styles now only enqueued on posts and pages where required.
+* Added option to always enqueue scripts and styles on every post and page.
+* Added function to remove unwanted formatting in shortcodes.
+* Cleaned up payment success and error details HTML.
+* Fixed duplicate payment success and failure output for rare themes that render multiple post content areas.
+* Added id attribute to shortcode to allow custom form id's.
+* Now sanitizes Stripe API keys with invalid copied characters following a space.
+
 = 1.2.9 =
 
 * Test/Live mode toggle switch updated. Now CSS only.
