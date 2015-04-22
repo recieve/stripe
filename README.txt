@@ -1,9 +1,9 @@
 ﻿=== Simple Stripe Checkout ===
 Contributors: pderksen, nickyoung87
 Tags: stripe, stripe checkout, simple stripe checkout, ecommerce, e-commerce
-Requires at least: 3.8.5
-Tested up to: 4.1
-Stable tag: trunk
+Requires at least: 3.9.3
+Tested up to: 4.2
+Stable tag: 1.3.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -62,9 +62,8 @@ If you want your customers to receive email receipts, make sure you enable this 
 
 [Learn More About Stripe Checkout Pro](http://wpstripe.net/?utm_source=wordpress_org&utm_medium=link&utm_campaign=stripe_checkout)
 
-###Feature Requests and Updates###
+###Updates###
 
-* [Public roadmap and feature requests](https://trello.com/b/neTGsBIY)
 * [Get notified when new features are released](http://eepurl.com/YMXvP)
 * [Follow this project on Github](https://github.com/pderksen/WP-Stripe-Checkout)
 
@@ -111,13 +110,22 @@ There are three ways to install this plugin.
 
 == Changelog ==
 
+= 1.3.1 - April 22, 2015 =
+
+* Updated calls to add_query_arg to prevent any possible XSS attacks.
+* Added the ability to accept Bitcoin payments via default settings.
+* Now checks that host is running PHP 5.3.3 or higher using the WPupdatePHP library.
+* Option to always enqueue scripts & styles now enabled by default.
+* Updated to most recent Stripe PHP library (v2.1.2).
+* Tested up to WordPress 4.2.
+
 = 1.3.0.1 - March 13, 2015 =
 
 * Corrected the Stripe PHP class check to include new v2.0.0+ namepace. Should fix issues when running other Stripe-related plugins that utilize a version of the Stripe PHP library less than v2.0.0.
 
 = 1.3.0 - March 12, 2015 =
 
-* Added the ability to accept Bitcoin payments.
+* Added the ability to accept Bitcoin payments via shortcode (bitcoin="true").
 * Updated to most recent Stripe PHP library (v2.1.1), which now requires PHP 5.3.3 or higher.
 * Scripts and styles now only enqueued on posts and pages where required.
 * Added option to always enqueue scripts and styles on every post and page.

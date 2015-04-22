@@ -84,7 +84,8 @@ function sc_register_settings() {
 			'disable_success_message' => array(
 				'id'   => 'disable_success_message',
 				'name' => __( 'Disable Success Message', 'sc' ),
-				'desc' => __( 'Disable default success message. Useful if you are redirecting to your own success page.', 'sc' ),
+				'desc' => __( 'Disable default success message.', 'sc' ) . '<br/>' .
+				          '<p class="description">' . __( 'Useful if you are redirecting to your own success page.', 'sc' ) . '</p>',
 				'type' => 'checkbox'
 			),
 			'failure_redirect_url' => array(
@@ -98,7 +99,7 @@ function sc_register_settings() {
 				'id'   => 'billing',
 				'name' => __( 'Enable Billing Address', 'sc' ),
 				'desc' => __( 'Require the user to enter their billing address during checkout.', 'sc' ) . 
-						( class_exists( 'Stripe_Checkout_Pro' ) ? '<br><em>' . __( 'See below if you also need to require a shipping address.', 'sc' ) . '</em>' : '' ),
+						( class_exists( 'Stripe_Checkout_Pro' ) ? '<br/><p class="description">' . __( 'See below if you also need to require a shipping address.', 'sc' ) . '</p>' : '' ),
 				'type' => 'checkbox'
 			),
 			'verify_zip' => array(
@@ -111,7 +112,13 @@ function sc_register_settings() {
 				'id'   => 'enable_remember',
 				'name' => __( 'Enable "Remember Me"', 'sc' ),
 				'desc' => __( 'Adds a "Remember Me" option to the checkout form to allow the user to store their credit card for future use with other sites using Stripe. ', 'sc' ) .
-					sprintf( '<a href="%s" target="_blank">%s</a>', 'https://stripe.com/checkout/info', __( 'See how it works', 'sc' ) ) . '.',
+				          sprintf( '<a href="%s" target="_blank">%s</a>', 'https://stripe.com/checkout/info', __( 'See how it works', 'sc' ) ),
+				'type' => 'checkbox'
+			),
+			'use_bitcoin' => array(
+				'id'   => 'use_bitcoin',
+				'name' => __( 'Enable Bitcoin', 'sc' ),
+				'desc' => sprintf( __( 'Enable accepting <a href="%s" target="_blank">Bitcoin</a> as a payment option.', 'sc' ), 'https://stripe.com/docs/guides/bitcoin' ),
 				'type' => 'checkbox'
 			),
 			'disable_css' => array(
@@ -123,13 +130,15 @@ function sc_register_settings() {
 			'always_enqueue' => array(
 				'id'   => 'always_enqueue',
 				'name' => __( 'Always Enqueue Scripts & Styles', 'sc' ),
-				'desc' => __( 'Enqueue this plugin\'s scripts and styles on every post and page. Useful if using shortcodes in widgets or other non-standard locations.', 'sc' ),
+				'desc' => __( 'Enqueue this plugin\'s scripts and styles on every post and page.', 'sc' ) . '<br/>' .
+				          '<p class="description">' . __( 'Useful if using shortcodes in widgets or other non-standard locations.', 'sc' ) . '</p>',
 				'type' => 'checkbox'
 			),
 			'uninstall_save_settings' => array(
 				'id'   => 'uninstall_save_settings',
 				'name' => __( 'Save Settings', 'sc' ),
-				'desc' => __( 'Save your settings when uninstalling this plugin. Useful when upgrading or re-installing.', 'sc' ),
+				'desc' => __( 'Save your settings when uninstalling this plugin.', 'sc' ) . '<br/>' .
+				          '<p class="description">' . __( 'Useful when upgrading or re-installing.', 'sc' ) . '</p>',
 				'type' => 'checkbox'
 			)
 		),
@@ -472,6 +481,8 @@ function sc_set_defaults() {
 		$defaults = get_option( 'sc_settings_default' );
 		$defaults['enable_remember'] = 1;
 		$defaults['uninstall_save_settings'] = 1;
+		$defaults['always_enqueue'] = 1;
+
 		update_option( 'sc_settings_default', $defaults );
 		
 		add_option( 'sc_has_run', 1 );
@@ -490,8 +501,6 @@ function sc_get_settings() {
 	if( isset( $sc_options['currency'] ) ) {
 		$sc_options['currency'] = strtoupper( $sc_options['currency'] );
 	}
-	
-	
-	
+
 	return $sc_options;
 }

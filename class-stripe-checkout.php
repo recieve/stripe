@@ -21,7 +21,7 @@ class Stripe_Checkout {
 	 *
 	 * @var     string
 	 */
-	protected $version = '1.3.0.1';
+	protected $version = '1.3.1';
 
 	/**
 	 * Unique identifier for your plugin.
@@ -84,11 +84,11 @@ class Stripe_Checkout {
 		add_action( 'admin_notices', array( $this, 'admin_install_notice' ) );
 
 		// Add plugin listing "Settings" action link.
-		add_filter( 'plugin_action_links_' . plugin_basename( plugin_dir_path( __FILE__ ) . $this->plugin_slug . '.php' ), array( $this, 'settings_link' ) );
+		add_filter( 'plugin_action_links_' . plugin_basename( SC_PATH . $this->plugin_slug . '.php' ), array( $this, 'settings_link' ) );
 
 		// Add upgrade link (if not already in Pro).
 		if ( ! class_exists( 'Stripe_Checkout_Pro' ) ) {
-			add_filter( 'plugin_action_links_' . plugin_basename( plugin_dir_path( __FILE__ ) . $this->plugin_slug . '.php' ), array( $this, 'purchase_pro_link' ) );
+			add_filter( 'plugin_action_links_' . plugin_basename( SC_PATH . $this->plugin_slug . '.php' ), array( $this, 'purchase_pro_link' ) );
 		}
 		
 		// Add "Upgrade to Pro" submenu link
@@ -385,7 +385,7 @@ class Stripe_Checkout {
 	 */
 	public function settings_link( $links ) {
 
-		$setting_link = sprintf( '<a href="%s">%s</a>', add_query_arg( 'page', $this->plugin_slug, admin_url( 'admin.php' ) ), __( 'Settings', 'sc' ) );
+		$setting_link = sprintf( '<a href="%s">%s</a>', esc_url( add_query_arg( 'page', $this->plugin_slug, admin_url( 'admin.php' ) ) ), __( 'Settings', 'sc' ) );
 		array_unshift( $links, $setting_link );
 
 		return $links;

@@ -32,7 +32,7 @@ function sc_stripe_shortcode( $attr, $content = null ) {
 					'billing'               => ( ! empty( $sc_options['billing'] ) ? 'true' : 'false' ),    // true or false
 					'payment_button_label'  => ( ! empty( $sc_options['payment_button_label'] ) ? $sc_options['payment_button_label'] : __( 'Pay with Card', 'sc' ) ),
 					'enable_remember'       => ( ! empty( $sc_options['enable_remember'] ) ? 'true' : 'false' ),    // true or false
-					'bitcoin'               => ( ! empty( $sc_options['bitcoin'] ) ? 'true' : 'false' ),    // true or false
+					'bitcoin'               => ( ! empty( $sc_options['use_bitcoin'] ) ? 'true' : 'false' ),    // true or false
 					'success_redirect_url'  => ( ! empty( $sc_options['success_redirect_url'] ) ? $sc_options['success_redirect_url'] : get_permalink() ),
 					'failure_redirect_url'  => ( ! empty( $sc_options['failure_redirect_url'] ) ? $sc_options['failure_redirect_url'] : get_permalink() ),
 					'prefill_email'         => 'false',
@@ -48,6 +48,8 @@ function sc_stripe_shortcode( $attr, $content = null ) {
 		// Increment static uid counter
 		$uid++;
 	}
+	
+	$test_mode = ( isset( $_GET['test_mode'] ) ? 'true' : $test_mode );
 	
 	// Check if in test mode or live mode
 	if( ! empty( $sc_options['enable_live_key'] ) && $sc_options['enable_live_key'] == 1 && $test_mode != 'true' ) {
