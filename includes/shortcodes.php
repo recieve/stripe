@@ -43,6 +43,10 @@ function sc_stripe_shortcode( $attr, $content = null ) {
 					'verify_zip'            => ( ! empty( $sc_options['verify_zip'] ) ? 'true' : 'false' ),
 					'test_mode'             => 'false',
 					'id'                    => null,
+					'alipay'                => ( ! empty( $sc_options['alipay'] ) ? $sc_options['alipay'] : 'false' ), // true, false or auto
+					'alipay_reusable'       => ( ! empty( $sc_options['alipay_reusable'] ) ? 'true' : 'false' ), // true or false
+					'locale'                => ( ! empty( $sc_options['locale'] ) ? 'auto' : '' ), // empty or auto
+					'payment_details_placement' => 'above',
 				), $attr, 'stripe' ) );
 
 	// Generate custom form id attribute if one not specified.
@@ -108,6 +112,9 @@ function sc_stripe_shortcode( $attr, $content = null ) {
 		( ! empty( $enable_remember ) ? 'data-allow-remember-me="' . $enable_remember . '" ' : 'data-allow-remember-me="true" ' ) .
 		( ! empty( $bitcoin ) ? 'data-bitcoin="' . $bitcoin . '" ' : '' ) .
 		( ! empty( $billing ) ? 'data-billing-address="' . $billing . '" ' : 'data-billing-address="false" ' ) .
+		( ! empty( $alipay ) ? 'data-alipay="' . $alipay . '" ' : '' ) .
+		( ! empty( $alipay_reusable ) ? 'data-alipay-reusable="' . $alipay_reusable . '" ' : '' ) .
+		( ! empty( $locale ) ? 'data-locale="' . $locale . '" ' : '' ) .
 		'></script>';
 	
 	$html .= '<input type="hidden" name="sc-name" value="' . esc_attr( $name ) . '" />';
@@ -116,6 +123,8 @@ function sc_stripe_shortcode( $attr, $content = null ) {
 	$html .= '<input type="hidden" name="sc-redirect" value="' . esc_attr( ( ! empty( $success_redirect_url ) ? $success_redirect_url : get_permalink() ) ) . '" />';
 	$html .= '<input type="hidden" name="sc-redirect-fail" value="' . esc_attr( ( ! empty( $failure_redirect_url ) ? $failure_redirect_url : get_permalink() ) ) . '" />';
 	$html .= '<input type="hidden" name="sc-currency" value="' .esc_attr( $currency ) . '" />';
+	$html .= '<input type="hidden" name="sc-details-placement" value="' . ( $payment_details_placement == 'below' ? 'below' : 'above' ) . '" />';
+	
 	
 	if( $test_mode == 'true' ) {
 		$html .= '<input type="hidden" name="sc_test_mode" value="true" />';

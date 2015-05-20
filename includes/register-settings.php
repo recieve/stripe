@@ -121,6 +121,29 @@ function sc_register_settings() {
 				'desc' => sprintf( __( 'Enable accepting <a href="%s" target="_blank">Bitcoin</a> as a payment option.', 'sc' ), 'https://stripe.com/docs/guides/bitcoin' ),
 				'type' => 'checkbox'
 			),
+			'alipay' => array(
+				'id'      => 'alipay',
+				'name'    => __( 'Enable Alipay (beta)', 'sc' ),
+				'desc'    => sprintf( __( 'Enable accepting <a href="%s" target="_blank">Alipay</a> as a payment option.', 'sc' ), 'https://stripe.com/docs/guides/alipay-beta' ),
+				'type'    => 'select',
+				'options' => array(
+					'false' => __( 'Disabled', 'sc' ),
+					'true'  => __( 'Enabled', 'sc' ),
+					'auto'  => __( 'Auto-detect', 'sc' )
+				)
+			),
+			'alipay_reusable' => array(
+				'id'   => 'alipay_reusable',
+				'name' => __( 'Enable Alipay Reusable', 'sc' ),
+				'desc' => __( 'Enable reusable access to the customer’s account when using Alipay.', 'sc' ),
+				'type' => 'checkbox'
+			),
+			'locale' => array( 
+				'id'   => 'locale',
+				'name' => __( 'Set Auto Locale', 'sc' ),
+				'desc' => __( "This option will render a localized Checkout UI, based upon the language preferences of the user's web browser.", 'sc' ),
+				'type' => 'checkbox'
+			),
 			'disable_css' => array(
 				'id'   => 'disable_css',
 				'name' => __( 'Disable Plugin CSS', 'sc' ),
@@ -344,6 +367,34 @@ function sc_section_callback( $args ) {
 }
 
 /*
+ * Select box callback function
+ */
+function sc_select_callback( $args ) {
+	global $sc_options;
+
+	// Return empty string if no options.
+	if ( empty( $args['options'] ) ) {
+		echo '';
+		return;
+	}
+
+	$html = "\n" . '<select id="sc_settings_' . $args['section'] . '[' . $args['id'] . ']" name="sc_settings_' . $args['section'] . '[' . $args['id'] . ']"/>' . "\n";
+
+	foreach ( $args['options'] as $option => $name ) :
+		$selected = isset( $sc_options[$args['id']] ) ? selected( $option, $sc_options[$args['id']], false ) : '';
+		$html .= '<option value="' . $option . '" ' . $selected . '>' . $name . '</option>' . "\n";
+	endforeach;
+
+	$html .= '</select>' . "\n";
+
+	// Render and style description text underneath if it exists.
+	if ( ! empty( $args['desc'] ) )
+		$html .= '<p class="description">' . $args['desc'] . '</p>' . "\n";
+
+	echo $html;
+}
+
+/*
  * Function we can use to sanitize the input data and return it when saving options
  * 
  * @since 1.0.0
@@ -395,69 +446,6 @@ function sc_radio_callback( $args ) {
 	}
 
 	echo '<p class="description">' . $args['desc'] . '</p>';
-}
-
-/*
- * License Keys callback function
- * 
- * @since 1.1.1
- */
-function sc_license_callback( $args ) {
-	global $sc_options;
-	
-	if ( isset( $sc_options[ $args['id'] ] ) ) {
-		$value = $sc_options[ $args['id'] ];
-	} else {
-		$value = isset( $args['std'] ) ? $args['std'] : '';
-	}
-	
-	$item = '';
-	
-	$html  = '<div class="license-wrap">';
-	
-	$size  = ( isset( $args['size'] ) && ! is_null( $args['size'] ) ) ? $args['size'] : 'regular-text';
-	$html .= "\n" . '<input type="text" class="' . $size . '" id="sc_settings_' . $args['section'] . '[' . $args['id'] . ']" name="sc_settings_' . $args['section'] . '[' . $args['id'] . ']" value="' . trim( esc_attr( $value ) ) . '"/>' . "\n";
-	
-	
-	$licenses = get_option( 'sc_licenses' );
-	
-	
-	// Add button on side of input
-	if( ! empty( $licenses[ $args['product'] ] ) && $licenses[ $args['product'] ] == 'valid' && ! empty( $value ) ) {
-		$html .= '<button class="button" data-sc-action="deactivate_license" data-sc-item="' .
-		         ( ! empty( $args['product'] ) ? $args['product'] : 'none' ) . '">' . __( 'Deactivate', 'sc' ) . '</button>';
-	} else {
-		$html .= '<button class="button" data-sc-action="activate_license" data-sc-item="' .
-		         ( ! empty( $args['product'] ) ? $args['product'] : 'none' ) . '">' . __( 'Activate', 'sc' ) . '</button>';
-	}
-	
-	$license_class = '';
-	$valid_message = '';
-	
-	$valid = sc_check_license( $value, $args['product'] );
-
-	if( $valid == 'valid' ) {
-		$license_class = 'sc-valid';
-		$valid_message = __( 'License is valid and active.', 'sc' );
-	} else if( $valid == 'notfound' ) {
-		$license_class = 'sc-invalid';
-		$valid_message = __( 'License service could not be found. Please contact support for assistance.', 'sc' );
-	} else {
-		$license_class = 'sc-inactive';
-		$valid_message = __( 'License is inactive.', 'sc' );
-	}
-	
-	$html .= '<span class="sc-spinner-wrap"><span class="spinner sc-spinner"></span></span>';
-	$html .= '<span class="sc-license-message ' . $license_class . '">' . $valid_message . '</span>';
-	
-	// Render and style description text underneath if it exists.
-	if ( ! empty( $args['desc'] ) ) {
-		$html .= '<p class="description">' . $args['desc'] . '</p>' . "\n";
-	}
-	
-	$html .= '</div>';
-	
-	echo $html;
 }
 
 /*

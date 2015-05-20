@@ -3,7 +3,7 @@ Contributors: pderksen, nickyoung87
 Tags: stripe, stripe checkout, simple stripe checkout, ecommerce, e-commerce
 Requires at least: 3.9
 Tested up to: 4.2
-Stable tag: 1.3.2
+Stable tag: 1.3.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -97,9 +97,7 @@ There are three ways to install this plugin.
 
 == Frequently Asked Questions ==
 
-[Detailed Shortcode Documentation](http://wpstripe.net/docs/shortcodes/stripe-checkout/?utm_source=wordpress_org&utm_medium=link&utm_campaign=stripe_checkout)
-
-[General Plugin Troubleshooting / FAQ](http://wpstripe.net/docs/simple-stripe-checkout-faq/?utm_source=wordpress_org&utm_medium=link&utm_campaign=stripe_checkout)
+[Plugin Documentation](http://wpstripe.net/docs/?utm_source=wordpress_org&utm_medium=link&utm_campaign=stripe_checkout)
 
 == Screenshots ==
 
@@ -109,6 +107,15 @@ There are three ways to install this plugin.
 4. Settings: Site-wide defaults
 
 == Changelog ==
+
+= 1.3.3 - May 20, 2015 =
+
+* Added the ability to accept Alipay payments via shortcode (alipay="true" or "auto").
+* Added optional Alipay shortcode attributes (alipay_reusable="true" and/or locale="true").
+* Added the ability to accept Alipay payments via default settings.
+* Added the ability to show payment details below post content via shortcode (payment_details_placement="below").
+* Upon payment failure, the human-readable payment failure message is displayed instead of the failure code.
+* Updated to most recent Stripe PHP library (v2.1.4).
 
 = 1.3.2 - April 24, 2015 =
 
