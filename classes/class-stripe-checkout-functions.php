@@ -158,7 +158,7 @@ if ( ! class_exists( 'Stripe_Checkout_Functions' ) ) {
 
 				self::$token = false;
 
-				wp_redirect( esc_url_raw( add_query_arg( $query_args, apply_filters( 'sc_redirect', $redirect, $failed ) ) ) );
+				wp_redirect( esc_url_raw( add_query_arg( apply_filters( 'sc_redirect_args', $query_args, $charge ), apply_filters( 'sc_redirect', $redirect, $failed ) ) ) );
 
 				exit;
 			}
@@ -223,14 +223,14 @@ if ( ! class_exists( 'Stripe_Checkout_Functions' ) ) {
 						$html .= '</div>' . "\n";
 
 						if ( $is_above ) {
-							return apply_filters( 'sc_payment_details', $html, $charge_response ) . $content;
+							$content = apply_filters( 'sc_payment_details', $html, $charge_response ) . $content;
 						} else {
-							return $content . apply_filters( 'sc_payment_details', $html, $charge_response );
+							$content = $content . apply_filters( 'sc_payment_details', $html, $charge_response );
 						}
 
-					} else {
-						return $content;
 					}
+
+					do_action( 'sc_after_charge', $charge_response );
 
 				} elseif ( isset( $_GET['charge_failed'] ) ) {
 
@@ -245,11 +245,15 @@ if ( ! class_exists( 'Stripe_Checkout_Functions' ) ) {
 					$html .= '</div>' . "\n";
 			
 					if ( $is_above ) {
-						return apply_filters( 'sc_payment_details_error', $html ) . $content;
+						$content = apply_filters( 'sc_payment_details_error', $html ) . $content;
 					} else {
-						return $content . apply_filters( 'sc_payment_details_error', $html );
+						$content = $content . apply_filters( 'sc_payment_details_error', $html );
 					}
+
+					do_action( 'sc_after_charge', $charge_response );
 				}
+
+
 			}
 			
 			return $content;

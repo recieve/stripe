@@ -5,7 +5,7 @@
  * Description: Add highly optimized Stripe checkout form overlays to your site in a few simple steps.
  * Author: Moonstone Media
  * Author URI: http://moonstonemediagroup.com
- * Version: 1.4.1
+ * Version: 1.4.2
  * Text Domain: sc
  * Domain Path: /languages/
  *
@@ -29,7 +29,7 @@ $stripe_checkout_constants = array(
 	'SC_MAIN_FILE'        => __FILE__,
 	'SC_DIR_PATH'         => plugin_dir_path( __FILE__ ),
 	'SC_DIR_URL'          => plugin_dir_url( __FILE__ ) ,
-	'SC_WEBSITE_BASE_URL' => 'http://wpstripe.net/',
+	'SC_WEBSITE_BASE_URL' => 'http://wpsimplepay.com/',
 );
 foreach( $stripe_checkout_constants as $constant => $value ) {
 	if ( ! defined( $constant ) ) {
@@ -82,4 +82,18 @@ register_activation_hook( SC_MAIN_FILE, array( 'Stripe_Checkout', 'activate' ) )
 
 // Set up global holding the base class instance so we can easily use it throughout
 global $base_class;
+
+include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+
+if ( is_plugin_active( 'stripe-checkout-pro/stripe-checkout-pro.php' ) ) {
+	deactivate_plugins( 'stripe-checkout-pro/stripe-checkout-pro.php' );
+
+	function sc_deactivate_lite_notice() {
+		echo '<div class="error"><p>' . __( 'You cannot activate WP Simple Pay Lite and Pro at the same time. Please deactivate one to activate the other.', 'sc' ) . '</p></div>';
+	}
+	add_action( 'admin_notices', 'sc_deactivate_lite_notice' );
+	//wp_die( sprintf( __( 'You cannot activate Stripe Checkout Lite with the Pro version already active. <a href="%s">Return to plugins page.</a>', 'sc' ), get_admin_url( '', 'plugins.php' ) ) );
+}
+
+
 $base_class = Stripe_Checkout::get_instance();

@@ -22,7 +22,7 @@ if ( ! class_exists( 'Stripe_Checkout' ) ) {
 		 *
 		 * @var     string
 		 */
-		public $version = '1.4.1';
+		public $version = '1.4.2';
 
 		/**
 		 * Unique identifier for your plugin.
@@ -173,6 +173,10 @@ if ( ! class_exists( 'Stripe_Checkout' ) ) {
 		
 		public static function get_pro_plugin_title() {
 			return __( 'WP Simple Pay Pro for Stripe', 'sc' );
+		}
+
+		public static function get_plugin_menu_title() {
+			return __( 'Simple Pay Lite', 'sc' );
 		}
 	}
 }
