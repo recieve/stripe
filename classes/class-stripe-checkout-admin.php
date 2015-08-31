@@ -2,9 +2,6 @@
 
 /**
  * Admin class file
- *
- * @package SC
- * @author  Phil Derksen <pderksen@gmail.com>, Nick Young <mycorpweb@gmail.com>
  */
 
 // Exit if accessed directly.
@@ -120,6 +117,15 @@ if ( ! class_exists( 'Stripe_Checkout_Admin' ) ) {
 				$base_class->plugin_slug,
 				array( $this, 'display_plugin_admin_page' ),
 				SC_DIR_URL . 'assets/img/icon-16x16.png'
+			);
+
+			$this->plugin_screen_hook_suffix[] = add_submenu_page(
+				$base_class->plugin_slug,
+				__( 'System Report', 'sc' ),
+				__( 'System Report', 'sc' ),
+				'manage_options',
+				$base_class->plugin_slug . '-tools',
+				array( 'Stripe_Checkout_System_Status', 'set_content' )
 			);
 		}
 

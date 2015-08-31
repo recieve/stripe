@@ -1,11 +1,11 @@
 <?php
 /**
  * Plugin Name: WP Simple Pay Lite for Stripe
- * Plugin URI: http://wpsimplepay.com
+ * Plugin URI: https://wpsimplepay.com
  * Description: Add highly optimized Stripe checkout form overlays to your site in a few simple steps.
  * Author: Moonstone Media
  * Author URI: http://moonstonemediagroup.com
- * Version: 1.4.2
+ * Version: 1.4.3
  * Text Domain: sc
  * Domain Path: /languages/
  *
@@ -29,7 +29,7 @@ $stripe_checkout_constants = array(
 	'SC_MAIN_FILE'        => __FILE__,
 	'SC_DIR_PATH'         => plugin_dir_path( __FILE__ ),
 	'SC_DIR_URL'          => plugin_dir_url( __FILE__ ) ,
-	'SC_WEBSITE_BASE_URL' => 'http://wpsimplepay.com/',
+	'SC_WEBSITE_BASE_URL' => 'https://wpsimplepay.com/',
 );
 foreach( $stripe_checkout_constants as $constant => $value ) {
 	if ( ! defined( $constant ) ) {
@@ -49,7 +49,17 @@ if ( $stripe_checkout_requirements->pass() === false ) {
 		function stripe_checkout_plugin_requirements() {
 			$required = unserialize( SC_REQUIRES );
 			global $wp_version;
-			echo '<div class="error"><p>' . sprintf( __( 'WP Simple Pay requires PHP %1$s and WordPress %2$s to function properly. PHP version found: %3$s. WordPress installed version: %4$s. Please update to meet the minimum requirements.', 'sc' ), $required['php'], $required['wp'], PHP_VERSION, $wp_version ) . '</p></div>';
+			echo '<div class="error">' .
+			        '<p>'  .
+					     sprintf(
+						     __( 'WP Simple Pay requires PHP %1$s and WordPress %2$s to function properly. PHP version found: %3$s. WordPress installed version: %4$s. Please upgrade to meet the minimum requirements. <a href="http://www.wpupdatephp.com/update/" target=_blank">Read more on why it is important to stay updated.</a>', 'sc' ),
+						     $required['php'],
+						     $required['wp'],
+						     PHP_VERSION,
+						     $wp_version
+					     ) .
+			        '</p>' .
+			     '</div>';
 		}
 		add_action( 'admin_notices', 'stripe_checkout_plugin_requirements' );
 

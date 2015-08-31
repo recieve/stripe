@@ -2,9 +2,6 @@
 
 /**
  * Main class
- *
- * @package SC
- * @author  Phil Derksen <pderksen@gmail.com>, Nick Young <mycorpweb@gmail.com>
  */
 
 // Exit if accessed directly.
@@ -22,7 +19,7 @@ if ( ! class_exists( 'Stripe_Checkout' ) ) {
 		 *
 		 * @var     string
 		 */
-		public $version = '1.4.2';
+		public $version = '1.4.3';
 
 		/**
 		 * Unique identifier for your plugin.
@@ -133,6 +130,7 @@ if ( ! class_exists( 'Stripe_Checkout' ) ) {
 			include_once( SC_DIR_PATH . 'classes/class-stripe-checkout-admin.php' );
 			include_once( SC_DIR_PATH . 'classes/class-stripe-checkout-upgrade-link.php' );
 			include_once( SC_DIR_PATH . 'classes/class-stripe-checkout-notices.php' );
+			include_once( SC_DIR_PATH . 'classes/class-stripe-checkout-system-status.php' );
 				
 			// Public side
 			include_once( SC_DIR_PATH . 'classes/class-stripe-checkout-functions.php' );
@@ -153,6 +151,7 @@ if ( ! class_exists( 'Stripe_Checkout' ) ) {
 				Stripe_Checkout_Admin::get_instance();
 				Stripe_Checkout_Upgrade_Link::get_instance();
 				Stripe_Checkout_Notices::get_instance();
+				Stripe_Checkout_System_Status::get_instance();
 			} else {
 				Stripe_Checkout_Misc::get_instance();
 				Stripe_Checkout_Functions::get_instance();

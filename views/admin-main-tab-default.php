@@ -2,10 +2,6 @@
 
 	/**
 	 * Represents the view for the Default Settings tab.
-	 *
-	 * @package    SC
-	 * @subpackage Views
-	 * @author     Phil Derksen <pderksen@gmail.com>, Nick Young <mycorsceb@gmail.com>
 	 */
 
 	global $sc_options; 
@@ -83,7 +79,7 @@
 	</div>
 
 	<div>
-		<label for="<?php echo esc_attr( $sc_options->get_setting_id( 'billing' ) ); ?>"><?php _e( 'Billing', 'sc' ); ?></label>
+		<label for="<?php echo esc_attr( $sc_options->get_setting_id( 'billing' ) ); ?>"><?php _e( 'Enable Billing Address', 'sc' ); ?></label>
 		<?php $sc_options->checkbox( 'billing' ); ?>
 		<span><?php _e( 'Require the user to enter their billing address during checkout.', 'sc' ); ?></span>
 	</div>
@@ -107,7 +103,7 @@
 	</div>
 	
 	<div>
-		<label for="<?php echo esc_attr( $sc_options->get_setting_id( 'alipay' ) ); ?>"><?php _e( 'Enable Alipay (beta)', 'sc' ); ?></label>
+		<label for="<?php echo esc_attr( $sc_options->get_setting_id( 'alipay' ) ); ?>"><?php _e( 'Enable Alipay', 'sc' ); ?></label>
 		<?php 
 			$sc_options->selectbox( 'alipay', array( 
 												'Disabled' => 'false', 
@@ -125,9 +121,14 @@
 	</div>
 	
 	<div>
-		<label for="<?php echo esc_attr( $sc_options->get_setting_id( 'locale' ) ); ?>"><?php _e( 'Set Auto Locale', 'sc' ); ?></label>
-		<?php $sc_options->checkbox( 'locale' ); ?>
-		<span><?php _e( "This option will render a localized Checkout UI, based upon the language preferences of the user's web browser. Enabling this will disable the billing address.", 'sc' ); ?></span>
+		<label for="<?php echo esc_attr( $sc_options->get_setting_id( 'locale' ) ); ?>"><?php _e( 'Set Locale', 'sc' ); ?></label>
+		<?php
+			$sc_options->textbox( 'locale', 'small-text' );
+			$sc_options->description( sprintf( __( '"auto" is used by default to select a language based on the user\'s browser configuration. '.
+			                                       'To select a particular language, pass the two letter ISO 639-1 code such as "zh" for Chinese. <br/>' .
+			                                       '<a href="%s" target="_blank">See languages supported by Stripe Checkout</a>', 'sc' ),
+				'https://support.stripe.com/questions/what-languages-does-stripe-checkout-support' ) );
+		?>
 	</div>
 
 	<div>
@@ -139,7 +140,7 @@
 	<div>
 		<label for="<?php echo esc_attr( $sc_options->get_setting_id( 'always_enqueue' ) ); ?>"><?php _e( 'Always Enqueue', 'sc' ); ?></label>
 		<?php $sc_options->checkbox( 'always_enqueue' ); ?>
-		<span><?php _e( 'Enqueue this plugin\'s scripts and styles on every post and page. Useful if using shortcodes in widgets or other non-standard locations.', 'sc' ); ?></span>
+		<span><?php _e( "Enqueue this plugin's scripts and styles on every post and page. Useful if using shortcodes in widgets or other non-standard locations.", 'sc' ); ?></span>
 	</div>
 
 	<div>
