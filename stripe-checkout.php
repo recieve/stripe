@@ -5,7 +5,7 @@
  * Description: Add highly optimized Stripe checkout form overlays to your site in a few simple steps.
  * Author: Moonstone Media
  * Author URI: http://moonstonemediagroup.com
- * Version: 1.4.3
+ * Version: 1.4.5
  * Text Domain: sc
  * Domain Path: /languages/
  *
@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 // Plugin requirements.
 $stripe_checkout_requires = array(
-	'wp'  => '3.9.0',
+	'wp'  => '4.0.0',
 	'php' => '5.3.0',
 	'ext' => array( 'curl', 'mbstring' )
 );
