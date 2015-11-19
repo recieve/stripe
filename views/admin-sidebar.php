@@ -31,51 +31,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 				</ul>
 
 				<div class="centered">
-					<a href="<?php echo Stripe_Checkout_Admin::ga_campaign_url( SC_WEBSITE_BASE_URL, 'stripe-checkout', 'sidebar-link', 'pro-upgrade' ); ?>"
+					<a href="<?php echo Stripe_Checkout_Admin::ga_campaign_url( SC_WEBSITE_BASE_URL, 'sidebar-link' ); ?>"
 					   class="button-primary button-large" target="_blank">
 						<?php _e( 'Upgrade to Pro Now', 'sc' ); ?></a>
 				</div>
 			</div>
-		</div>
-	</div>
-</div>
-
-<div class="sidebar-container metabox-holder">
-	<div class="postbox">
-		<div class="inside">
-			<p>
-				<?php _e( 'Your review helps more folks find our plugin. Thanks so much!', 'sc' ); ?>
-			</p>
-			<div class="centered">
-				<a href="https://wordpress.org/support/view/plugin-reviews/stripe#postform" class="button-primary" target="_blank">
-					<?php _e( 'Review this Plugin Now', 'sc' ); ?></a>
-			</div>
-		</div>
-	</div>
-</div>
-
-<div class="sidebar-container metabox-holder">
-	<div class="postbox">
-		<div class="inside">
-			<ul>
-				<li>
-					<div class="dashicons dashicons-arrow-right-alt2"></div>
-					<a href="<?php echo Stripe_Checkout_Admin::ga_campaign_url( SC_WEBSITE_BASE_URL . 'docs/', 'stripe-checkout', 'sidebar-link', 'docs' ); ?>" target="_blank">
-						<?php _e( 'Documentation', 'sc' ); ?></a>
-				</li>
-
-				<li>
-					<div class="dashicons dashicons-arrow-right-alt2"></div>
-					<a href="https://wordpress.org/support/plugin/stripe" target="_blank">
-						<?php _e( 'Community support forums', 'sc' ); ?></a>
-				</li>
-
-				<li>
-					<div class="dashicons dashicons-arrow-right-alt2"></div>
-					<a href="https://dashboard.stripe.com/" target="_blank">
-						<?php _e( 'Stripe Dashboard', 'sc' ); ?></a>
-				</li>
-			</ul>
 		</div>
 	</div>
 </div>
